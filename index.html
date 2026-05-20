@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Condition 3 — Generative Chatbot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+
+/* ── BASE — mobile first ── */
+body{
+  font-family:'DM Sans',system-ui,sans-serif;
+  background:#f0efe9;
+  color:#1a1a18;
+  min-height:100dvh;
+  padding:0;
+}
+
+/* ── PAGE WRAPPER ── */
+.page{width:100%;max-width:860px;margin:0 auto;}
+
+/* ── PAGE HEADER ── */
+.page-header{padding:14px 16px 8px;margin-bottom:0;}
+.page-header h1{font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:3px;}
+.page-header p{font-size:12px;color:#5f5e5a;line-height:1.5;}
+
+/* ── TASK BANNER ── */
+.task-banner{background:#fff8e1;border-bottom:2px solid #f0c040;padding:12px 16px;font-size:13px;color:#3a3a2a;line-height:1.6;}
+.task-banner strong{display:block;margin-bottom:4px;font-size:13px;font-weight:600;color:#1a1a0a;}
+.task-banner ol{margin:4px 0 0 16px;padding:0;}
+.task-banner ol li{margin-bottom:2px;}
+
+/* ── CONDITION TABS — tab bar like a native app ── */
+.cond-tabs{
+  display:flex;
+  gap:0;
+  background:#fff;
+  border-bottom:1px solid #d3d1c7;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.cond-tabs::-webkit-scrollbar{display:none;}
+.cond-btn{
+  flex:1 0 auto;
+  padding:13px 12px;
+  border:none;
+  border-bottom:2px solid transparent;
+  border-radius:0;
+  background:transparent;
+  color:#5f5e5a;
+  font-size:12px;
+  font-family:inherit;
+  cursor:pointer;
+  white-space:nowrap;
+  font-weight:400;
+  transition:color .15s,border-color .15s;
+  -webkit-tap-highlight-color:transparent;
+  min-height:44px;
+}
+.cond-btn.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:500;}
+
+.condition{display:none;}.condition.active{display:block;}
+
+/* ── INTRANET SHELL — edge-to-edge on mobile ── */
+.intranet{border:none;border-radius:0;background:#fff;}
+.intranet-header{
+  background:#f5f4f0;
+  border-bottom:1px solid #d3d1c7;
+  padding:11px 16px;
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:10;
+}
+.logo-dot{width:28px;height:28px;border-radius:7px;background:#185FA5;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#fff;flex-shrink:0;}
+.logo-dot.green{background:#0F6E56;}
+.header-text .title{font-size:13px;font-weight:500;color:#1a1a18;}
+.header-text .sub{font-size:11px;color:#5f5e5a;}
+.intranet-body{padding:14px 12px;background:#fff;}
+.badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:6px;margin-bottom:10px;font-weight:500;}
+.badge-blue{background:#E6F1FB;color:#0C447C;}
+.badge-teal{background:#E1F5EE;color:#085041;}
+.page-title{font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:3px;}
+.page-sub{font-size:12px;color:#5f5e5a;margin-bottom:12px;}
+
+/* ── CATEGORY TABS — horizontal pill scroll like Gemini ── */
+.cat-tabs{
+  display:flex;
+  gap:6px;
+  margin-bottom:12px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  padding-bottom:2px;
+}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{
+  flex-shrink:0;
+  padding:8px 14px;
+  font-size:12px;
+  border:1px solid #d3d1c7;
+  border-radius:20px;
+  background:transparent;
+  color:#5f5e5a;
+  cursor:pointer;
+  font-family:inherit;
+  white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+  min-height:36px;
+  transition:background .12s,color .12s,border-color .12s;
+}
+.cat-tab.active{background:#f5f4f0;color:#1a1a18;border-color:#888780;font-weight:500;}
+.cat-tab.urgent{border-color:#E24B4A;color:#A32D2D;}
+.cat-tab.urgent.active{background:#FCEBEB;color:#A32D2D;border-color:#E24B4A;font-weight:500;}
+.cat-panel{display:none;}.cat-panel.active{display:block;}
+
+/* ── FAQ (condition 1) ── */
+.faq-tip{background:#f5f4f0;border-radius:8px;padding:10px 13px;font-size:12px;color:#5f5e5a;margin-bottom:10px;line-height:1.55;}
+.faq-list{list-style:none;}
+.faq-item{border:1px solid #d3d1c7;border-radius:8px;margin-bottom:6px;overflow:hidden;}
+.faq-item.urgent-item{border-color:#F09595;}
+.faq-q{
+  padding:14px 13px;
+  font-size:14px;
+  font-weight:500;
+  color:#1a1a18;
+  cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;
+  background:#fff;user-select:none;gap:8px;
+  font-family:inherit;line-height:1.4;
+  min-height:52px;
+  -webkit-tap-highlight-color:transparent;
+}
+.faq-item.urgent-item .faq-q{background:#fff8f8;}
+.faq-a{padding:0 13px;font-size:13px;color:#444441;line-height:1.75;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .2s;}
+.faq-item.open .faq-a{max-height:2000px;padding:13px;border-top:1px solid #d3d1c7;}
+.faq-item.urgent-item.open .faq-a{border-top-color:#F09595;}
+.faq-item.open .arrow{transform:rotate(90deg);}
+.arrow{transition:transform .2s;color:#b4b2a9;font-size:12px;flex-shrink:0;}
+.faq-a p{margin-bottom:8px;}.faq-a p:last-child{margin-bottom:0;}
+.faq-a ul,.faq-a ol{padding-left:16px;margin:6px 0 8px;}
+.faq-a li{margin-bottom:4px;}
+
+/* ── ALERTS ── */
+.alert-box{background:#FCEBEB;border:1px solid #F09595;border-radius:8px;padding:12px 13px;font-size:13px;color:#501313;margin-bottom:12px;line-height:1.65;}
+.alert-box strong{color:#A32D2D;}
+.contact-card{background:#f5f4f0;border:1px solid #d3d1c7;border-radius:8px;padding:11px 13px;margin-top:9px;font-size:12px;color:#444441;line-height:1.8;}
+.contact-card strong{color:#1a1a18;display:block;margin-bottom:2px;}
+
+/* ── CHAT WINDOW — full-height like Claude/ChatGPT app ── */
+.chat-window{
+  display:flex;
+  flex-direction:column;
+  border:none;
+  border-radius:0;
+  background:#fff;
+}
+.chat-topbar{
+  padding:10px 13px;
+  background:#f5f4f0;
+  border-bottom:1px solid #d3d1c7;
+  display:flex;align-items:center;gap:8px;
+  flex-shrink:0;
+}
+.bot-av{width:28px;height:28px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#185FA5;flex-shrink:0;font-weight:500;}
+.gen-av{width:28px;height:28px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:12px;color:#085041;flex-shrink:0;}
+.bot-nm{font-size:13px;font-weight:500;color:#1a1a18;}
+.bot-st{font-size:11px;color:#5f5e5a;}
+.online{width:7px;height:7px;border-radius:50%;background:#639922;margin-left:auto;flex-shrink:0;}
+
+/* Messages area — fills available space */
+.chat-msgs{
+  flex:1;
+  padding:12px 12px;
+  min-height:calc(100svh - 320px);
+  max-height:calc(100svh - 200px);
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  background:#fff;
+  -webkit-overflow-scrolling:touch;
+}
+.chat-msgs::-webkit-scrollbar{width:0;}
+
+/* Message bubbles — wider on mobile */
+.msg{max-width:92%;font-size:14px;line-height:1.65;}
+.msg p{margin-bottom:6px;}.msg p:last-child{margin-bottom:0;}
+.msg ul,.msg ol{padding-left:16px;margin:4px 0 6px;}
+.msg li{margin-bottom:3px;}
+.msg-bot{background:#f5f4f0;border:1px solid #d3d1c7;border-radius:4px 16px 16px 16px;padding:11px 13px;color:#1a1a18;align-self:flex-start;}
+.msg-user{background:#185FA5;color:#fff;border-radius:16px 4px 16px 16px;padding:11px 13px;align-self:flex-end;}
+.msg-gen{background:#f5f4f0;border:1px solid #d3d1c7;border-radius:4px 16px 16px 16px;padding:11px 13px;color:#1a1a18;align-self:flex-start;}
+.msg-alert{background:#FCEBEB;border:1px solid #F09595;border-radius:4px 16px 16px 16px;padding:11px 13px;color:#501313;align-self:flex-start;max-width:94%;font-size:14px;line-height:1.65;}
+.user-wrap{display:flex;flex-direction:column;align-items:flex-end;}
+
+/* ── SUGGESTION CHIPS — horizontal scroll like Gemini ── */
+.sug-wrap{align-self:flex-start;max-width:100%;width:100%;}
+.sug-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:4px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  padding-bottom:2px;
+}
+.sug-row::-webkit-scrollbar{display:none;}
+.sug-btn{
+  flex-shrink:0;
+  font-size:13px;
+  padding:8px 14px;
+  border:1px solid #c8c7be;
+  border-radius:20px;
+  background:#fff;
+  color:#5f5e5a;
+  cursor:pointer;
+  font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+  min-height:36px;
+  transition:background .12s,border-color .12s;
+}
+.sug-btn:active{background:#f5f4f0;border-color:#888780;}
+.sug-btn.urgent-sug{border-color:#F09595;color:#A32D2D;background:#FCEBEB;}
+.sug-btn.urgent-sug:active{background:#F7C1C1;}
+
+/* ── INPUT ROW — pill input + circular send, like Claude app ── */
+.chat-inp-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 12px;
+  padding-bottom:max(10px, env(safe-area-inset-bottom));
+  background:#fafaf8;
+  border-top:1px solid #d3d1c7;
+  position:sticky;
+  bottom:0;
+  z-index:20;
+  flex-shrink:0;
+}
+.chat-inp{
+  flex:1;
+  font-size:16px; /* prevents iOS zoom */
+  padding:11px 16px;
+  border:1px solid #d3d1c7;
+  border-radius:24px;
+  background:#fff;
+  color:#1a1a18;
+  outline:none;
+  font-family:inherit;
+  -webkit-appearance:none;
+  transition:border-color .15s;
+  min-height:46px;
+}
+.chat-inp:focus{border-color:#185FA5;}
+/* Send = circular button with arrow, like Claude/ChatGPT mobile */
+.send-btn{
+  width:46px;height:46px;
+  border-radius:50%;
+  border:none;
+  background:#185FA5;
+  color:#fff;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+  transition:background .15s,transform .1s;
+  font-size:0; /* hide text, show icon via pseudo */
+}
+.send-btn::after{content:'↑';font-size:20px;font-weight:600;color:#fff;line-height:1;}
+.send-btn:active{background:#0C447C;transform:scale(.93);}
+
+/* ── TYPING INDICATOR ── */
+.typing{display:flex;gap:5px;align-items:center;padding:8px 6px;}
+.typing span{width:7px;height:7px;border-radius:50%;background:#b4b2a9;animation:bounce 1.1s infinite ease-in-out;}
+.typing span:nth-child(2){animation-delay:.18s;}
+.typing span:nth-child(3){animation-delay:.36s;}
+@keyframes bounce{0%,80%,100%{transform:scale(.55)}40%{transform:scale(1)}}
+
+/* ── VERA LABEL + FEEDBACK ── */
+.label-row{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+.label-nm{font-size:11px;font-weight:500;color:#5f5e5a;}
+.fb-row{display:flex;gap:7px;margin-top:9px;align-items:center;flex-wrap:wrap;}
+.fb-btn{
+  font-size:12px;padding:6px 14px;
+  border:1px solid #d3d1c7;border-radius:20px;
+  background:transparent;color:#5f5e5a;
+  cursor:pointer;font-family:inherit;
+  min-height:36px;
+  -webkit-tap-highlight-color:transparent;
+  transition:background .12s;
+}
+.fb-btn:active{background:#f5f4f0;}
+.fb-lbl{font-size:11px;color:#b4b2a9;}
+
+/* ── VOICE PANEL ── */
+.voice-panel{padding:14px 12px;background:#fff;}
+.voice-panel h3{font-size:14px;font-weight:500;color:#1a1a18;margin-bottom:4px;}
+.voice-panel p{font-size:13px;color:#5f5e5a;margin-bottom:12px;line-height:1.55;}
+.voice-options{display:flex;flex-direction:column;gap:8px;}
+.voice-card{
+  border:1px solid #d3d1c7;border-radius:10px;
+  padding:13px 14px;cursor:pointer;
+  background:#fff;min-height:58px;
+  -webkit-tap-highlight-color:transparent;
+  transition:background .12s,border-color .12s;
+}
+.voice-card:active{background:#f5f4f0;border-color:#888780;}
+.voice-card.active{border-color:#185FA5;background:#E6F1FB;}
+.voice-card .vc-title{font-size:14px;font-weight:500;color:#1a1a18;margin-bottom:2px;}
+.voice-card .vc-sub{font-size:12px;color:#5f5e5a;}
+.voice-card.active .vc-title{color:#0C447C;}
+.voice-card.active .vc-sub{color:#185FA5;}
+.voice-textarea{
+  width:100%;font-size:16px;padding:11px 13px;
+  border:1px solid #d3d1c7;border-radius:10px;
+  background:#fff;color:#1a1a18;outline:none;
+  font-family:inherit;resize:none;min-height:90px;
+  margin-top:10px;-webkit-appearance:none;
+  transition:border-color .15s;display:none;
+}
+.voice-textarea:focus{border-color:#185FA5;}
+.voice-textarea.visible{display:block;}
+.voice-submit{
+  margin-top:10px;padding:13px 24px;
+  font-size:14px;font-weight:500;
+  background:#185FA5;color:#fff;
+  border:none;border-radius:24px;
+  cursor:pointer;font-family:inherit;
+  display:none;min-height:46px;width:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+.voice-submit.visible{display:block;}
+.voice-submit:active{background:#0C447C;}
+.voice-confirm{
+  display:none;background:#EAF3DE;
+  border:1px solid #639922;border-radius:10px;
+  padding:13px 14px;font-size:13px;
+  color:#27500A;line-height:1.6;margin-top:10px;
+}
+.voice-confirm.visible{display:block;}
+
+/* ── DESKTOP (≥640px) — card layout ── */
+@media(min-width:640px){
+  body{padding:2rem 1rem;}
+  .page-header{padding:0;margin-bottom:1.25rem;}
+  .page-header h1{font-size:17px;}
+  .cond-tabs{background:transparent;border:none;gap:6px;margin-bottom:1rem;}
+  .cond-btn{flex:0 0 auto;border:1px solid #c8c7be;border-bottom:1px solid #c8c7be;border-radius:8px;padding:8px 16px;font-size:13px;background:#fff;}
+  .cond-btn.active{background:#f0efe9;color:#1a1a18;border-color:#888780;border-bottom-color:#888780;}
+  .intranet{border:1px solid #d3d1c7;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .intranet-header{padding:13px 20px;position:static;}
+  .intranet-body{padding:20px;}
+  .cat-tab{border-radius:6px;padding:5px 12px;}
+  .faq-q{font-size:13px;min-height:auto;padding:11px 14px;}
+  .chat-window{border:1px solid #d3d1c7;border-radius:8px;}
+  .chat-msgs{min-height:240px;max-height:460px;}
+  .msg{max-width:84%;font-size:13px;}
+  .msg-bot,.msg-gen{border-radius:4px 10px 10px 10px;}
+  .msg-user{border-radius:10px 4px 10px 10px;}
+  .msg-alert{border-radius:4px 10px 10px 10px;font-size:13px;}
+  .sug-btn{font-size:11px;padding:4px 10px;border-radius:6px;min-height:auto;}
+  .chat-inp-row{position:static;padding:10px 13px;}
+  .chat-inp{font-size:13px;padding:8px 12px;border-radius:7px;min-height:auto;}
+  .send-btn{width:auto;height:auto;border-radius:7px;padding:8px 14px;font-size:0;}
+  .send-btn::after{content:'Send';font-size:12px;font-weight:500;}
+  .fb-btn{font-size:11px;padding:3px 9px;border-radius:6px;min-height:auto;}
+  .voice-card{min-height:auto;border-radius:8px;}
+  .voice-textarea{font-size:13px;border-radius:7px;}
+  .voice-submit{width:auto;border-radius:7px;padding:8px 18px;font-size:13px;min-height:auto;}
+  .task-banner{padding:12px 20px;}
+}
+
+/* ── EXTRA SMALL (≤380px) ── */
+@media(max-width:380px){
+  .cat-tab{font-size:11px;padding:7px 11px;}
+  .sug-btn{font-size:12px;}
+  .msg{font-size:13px;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-header">
+    <h1>Acme Intranet — Knowledge Base Stimuli</h1>
+    <p>Experimental conditions for research into internal communication via FAQ formats</p>
+  </div>
+  <div class="intranet">
+  <div class="task-banner">
+    <strong>Instructions</strong>
+    You can spend as much time as you need with the FAQ to learn about HR-related matters.<br>
+    Please interact with the FAQ system and complete the following tasks:
+    <ol>
+      <li>Try to find out how to reset your password.</li>
+      <li>Try to find out what to do if you are sick.</li>
+    </ol>
+  </div>
+  <div class="intranet-header">
+    <div class="logo-dot green">A</div>
+    <div class="header-text"><div class="title">Acme Intranet — Knowledge Base</div><div class="sub">Frequently asked questions for employees</div></div>
+  </div>
+  <div class="intranet-body">
+    <span class="badge badge-blue">Frequently Asked Questions</span>
+    <div class="page-title">Employee knowledge base</div>
+    <div class="page-sub">Select a category and click a question to read the full answer.</div>
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="genCatSwitch('hr',this)">HR &amp; Policy</button>
+      <button class="cat-tab" onclick="genCatSwitch('leave',this)">Leave &amp; Absence</button>
+      <button class="cat-tab" onclick="genCatSwitch('salary',this)">Salary &amp; Benefits</button>
+      <button class="cat-tab" onclick="genCatSwitch('onboarding',this)">Onboarding</button>
+      <button class="cat-tab" onclick="genCatSwitch('development',this)">Development &amp; Growth</button>
+      <button class="cat-tab" onclick="genCatSwitch('it',this)">IT &amp; Systems</button>
+      <button class="cat-tab" onclick="genCatSwitch('sales',this)">Sales &amp; Marketing</button>
+      <button class="cat-tab" onclick="genCatSwitch('ops',this)">Operations</button>
+      <button class="cat-tab urgent" onclick="genCatSwitch('cp',this)">Confidential Support</button>
+      <button class="cat-tab" onclick="genCatSwitch('voice',this)" style="border-color:#185FA5;color:#185FA5;">Share with Acme</button>
+    </div>
+    <div class="chat-window">
+      <div class="chat-topbar">
+        <div class="gen-av">✦</div>
+        <div><div class="bot-nm">HR Assistant</div><div class="bot-st">Responds instantly from the knowledge base</div></div>
+        <div class="online"></div>
+      </div>
+      <div class="chat-msgs" id="gen-msgs">
+        <div><div class="label-row"><div class="gen-av" style="width:20px;height:20px;font-size:10px;">❖</div><span class="label-nm">HR Assistant</span></div>
+        <div class="msg msg-gen">Hello! I am Acme's digital HR assistant. I answer questions based on the internal knowledge base. Choose a category above or type your question below.</div></div>
+        <div class="sug-wrap" id="gsg-hr"><div class="sug-row">
+          <button class="sug-btn" onclick="genQWithFollowup('What is the code of conduct?','Where can I find the full document?','Where can I find it?')">Code of conduct</button>
+          <button class="sug-btn" onclick="genQWithFollowup('What is the remote working policy?','What equipment allowance do I get for home working?','What about the equipment allowance?')">Remote working</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How does the performance review work?','How does the annual review affect my bonus?','How does it affect my bonus?')">Performance review</button>
+          <button class="sug-btn" onclick="genQWithFollowup('What are the rules for business travel?','How do I submit my travel expenses?','How do I claim expenses?')">Business travel</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I report a conflict or complaint?','Can I raise a concern anonymously?','Can I report anonymously?')">Report a complaint</button>
+          <button class="sug-btn" onclick="genQWithFollowup('What is the social media policy?','What happens if I post something wrong?','What if I make a mistake?')">Social media policy</button>
+        </div></div>
+        <div class="sug-wrap" id="gsg-leave" style="display:none"><div class="sug-row">
+          <button class="sug-btn" onclick="genQWithFollowup('How many holiday days do I get?','How do I check my remaining holiday balance?','How do I check my balance?')">Holiday entitlement</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I request annual leave?','What happens if my holiday request is declined?','What if it gets declined?')">Book leave</button>
+          <button class="sug-btn" onclick="genQWithFollowup('I am sick — what do I do?','When do I need a doctor note?','When do I need a doctor note?')">Sickness absence</button>
+          <button class="sug-btn" onclick="genQWithFollowup('I am coming back from sick leave','What if I was off for more than two weeks?','What if I was off over 2 weeks?')">Return from sick leave</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How does parental leave work?','Is parental leave paid?','Is parental leave paid?')">Parental leave</button>
+          <button class="sug-btn" onclick="genQWithFollowup('What types of special leave exist?','Do I need to use annual leave for jury duty?','What about jury duty?')">Special leave</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How does the commuting allowance work?','Is public transport also covered for commuting?','Is public transport covered?')">Commuting allowance</button>
+        </div></div>
+        <div class="sug-wrap" id="gsg-salary" style="display:none"><div class="sug-row">
+          <button class="sug-btn" onclick="genQWithFollowup('When do I receive my salary?','How do I access my payslip?','How do I access my payslip?')">Salary payment</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I claim expenses?','What is the deadline to submit an expense claim?','What is the deadline?')">Expense claims</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How does the pension scheme work?','Can I opt out of the pension scheme?','Can I opt out?')">Pension scheme</button>
+          <button class="sug-btn" onclick="genQWithFollowup('What health benefits does Acme offer?','How do I access the free psychologist sessions?','How do I access the psychologist?')">Health &amp; wellbeing</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How does the bonus scheme work?','When is the bonus payment made?','When is the bonus paid?')">Bonus scheme</button>
+        </div></div>
+        <div class="sug-wrap" id="gsg-onboarding" style="display:none"><div class="sug-row">
+          <button class="sug-btn" onclick="genQWithFollowup('I just started at Acme — what do I need to do?','How do I set up 2FA on my account?','How do I set up 2FA?')">I just started</button>
+          <button class="sug-btn" onclick="genQWithFollowup('What does the onboarding programme look like?','What happens at the probationary review?','What happens at the probation review?')">Onboarding programme</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I get access to systems?','How do I set up two-factor authentication?','How do I set up 2FA?')">System access</button>
+          <button class="sug-btn" onclick="genQWithFollowup('Where is the employee handbook?','Where can I find the code of conduct?','Where is the code of conduct?')">Employee handbook</button>
+        </div></div>
+        <div class="sug-wrap" id="gsg-development" style="display:none"><div class="sug-row">
+          <button class="sug-btn" onclick="genQWithFollowup('What training costs does Acme cover?','How do I submit a learning budget request?','How do I submit a request?')">Learning budget</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How does internal career progression work?','What are the criteria to apply for an internal vacancy?','What are the criteria?')">Career progression</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I create a personal development plan?','How often should I review my personal development plan?','How often should I review it?')">Development plan (PDP)</button>
+        </div></div>
+        <div class="sug-wrap" id="gsg-it" style="display:none"><div class="sug-row">
+          <button class="sug-btn" onclick="genQWithFollowup('I have an IT problem','How do I reset my password?','How do I reset my password?')">I have an IT problem</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I reset my password?','What are the password requirements at Acme?','What are the requirements?')">Reset password</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I set up 2FA?','What do I do if I lose my phone with the authenticator?','What if I lose my phone?')">Set up 2FA</button>
+          <button class="sug-btn" onclick="genQWithFollowup('I think I clicked on a phishing email','What do I do after accidentally clicking a suspicious link?','What should I do right now?')">Suspicious email</button>
+          <button class="sug-btn" onclick="genQWithFollowup('What do I do if my laptop was stolen?','How do I get a replacement laptop after mine was stolen?','How do I get a replacement?')">Stolen device 🚨</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I connect to the VPN?','Do I always need the VPN when working from home?','Do I always need it at home?')">Connect to VPN</button>
+        </div></div>
+        <div class="sug-wrap" id="gsg-sales" style="display:none"><div class="sug-row">
+          <button class="sug-btn" onclick="genQWithFollowup('Where can I find product information?','Where are the competitive battlecards?','Where are the battlecards?')">Product info</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How much discount can I offer?','How much discount can I offer without manager approval?','What approval above 10%?')">Discount policy</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I use Salesforce?','When do I need to log client interactions in Salesforce?','How quickly must I log things?')">CRM usage</button>
+          <button class="sug-btn" onclick="genQWithFollowup('Where are the competitive battlecards?','How often are the battlecards updated?','How often are they updated?')">Battlecards</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I build an ROI justification for a client?','Does the Sales Manager need to check my ROI before presenting?','Does the Sales Manager need to approve it?')">ROI calculator</button>
+        </div></div>
+        <div class="sug-wrap" id="gsg-ops" style="display:none"><div class="sug-row">
+          <button class="sug-btn" onclick="genQWithFollowup('What are the opening procedures?','What do I do if a system shows a red status?','What if a system shows red status?')">Opening procedures</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I process a customer order?','What do I do if I need to deviate from the order process?','What if I need to deviate?')">Order processing</button>
+          <button class="sug-btn" onclick="genQWithFollowup('When do I submit weekly reports?','What does the weekly report need to include?','What must I include?')">Weekly reports</button>
+          <button class="sug-btn" onclick="genQWithFollowup('How do I report a safety incident?','Do near miss incidents need to be reported too?','Do near misses count too?')">Safety incident</button>
+        </div></div>
+        <div class="sug-wrap" id="gsg-cp" style="display:none"><div class="sug-row">
+          <button class="sug-btn urgent-sug" onclick="genQWithFollowup('I feel unsafe at work','Can I speak to the Support Officer anonymously?','Can I do this anonymously?')">I feel unsafe</button>
+          <button class="sug-btn urgent-sug" onclick="genQWithFollowup('I am being bullied at work','What exactly counts as bullying at Acme?','What counts as bullying?')">Bullying</button>
+          <button class="sug-btn urgent-sug" onclick="genQWithFollowup('I am not sure if this counts as harassment','What is the difference between bullying and harassment?','What is the difference?')">Is this harassment?</button>
+          <button class="sug-btn urgent-sug" onclick="genQWithFollowup('I am being discriminated against','Can I raise a discrimination complaint anonymously?','Can I raise a concern anonymously?')">Discrimination</button>
+          <button class="sug-btn urgent-sug" onclick="genQWithFollowup('I am experiencing sexual harassment','What external support is available for sexual harassment?','What external support is there?')">Sexual harassment</button>
+          <button class="sug-btn urgent-sug" onclick="genQWithFollowup('How does the complaint process work?','What are my rights during a formal complaint investigation?','What are my rights?')">Complaint process</button>
+          <button class="sug-btn urgent-sug" onclick="genQWithFollowup('Can I report anonymously?','What happens when I report something anonymously?','What happens after I report?')">Report anonymously</button>
+          <button class="sug-btn urgent-sug" onclick="genQWithFollowup('The behaviour is coming from my manager','Who can I contact about my manager behaviour?','Who else can I go to?')">Manager behaviour</button>
+          <button class="sug-btn urgent-sug" onclick="genQWithFollowup('What are my rights when I complain?','Can I appeal a formal complaint outcome?','Can I appeal the outcome?')">My rights</button>
+        </div></div>
+      </div>
+            <div class="chat-inp-row">
+        <input class="chat-inp" id="gen-inp" type="text" placeholder="Ask your question in your own words..." onkeydown="if(event.key==='Enter')genSend()"/>
+        <button class="send-btn" onclick="genSend()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ── NAVIGATION ── */
+function switchCond(id,btn){
+  document.querySelectorAll('.condition').forEach(function(c){c.classList.remove('active');});
+  document.querySelectorAll('.cond-tabs .cond-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('cond-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+function switchCat(p,id,btn){
+  var body=btn.closest('.intranet-body');
+  body.querySelectorAll('.cat-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  body.querySelectorAll('.cat-panel').forEach(function(x){x.classList.remove('active');});
+  var panel=document.getElementById(p+'-'+id);
+  if(panel) panel.classList.add('active');
+}
+function tog(el){
+  var open=el.classList.contains('open');
+  el.closest('.faq-list').querySelectorAll('.faq-item').forEach(function(i){i.classList.remove('open');});
+  if(!open)el.classList.add('open');
+}
+function retCatSwitch(cat,btn){
+  btn.closest('.intranet-body').querySelectorAll('.cat-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  if(cat === 'voice'){
+    injectVoicePrompt('ret');
+  } else {
+    ['hr','leave','salary','onboarding','development','it','sales','ops','cp','voice'].forEach(function(c){
+      var el=document.getElementById('rsg-'+c);
+      if(!el)return;
+      el.style.display=c===cat?'block':'none';
+    });
+  }
+}
+
+
+function genCatSwitch(cat,btn){
+  btn.closest('.intranet-body').querySelectorAll('.cat-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+
+  if(cat === 'voice'){
+    injectVoicePrompt('gen');
+  } else {
+    ['hr','leave','salary','onboarding','development','it','sales','ops','cp'].forEach(function(c){
+      var el=document.getElementById('gsg-'+c);
+      if(!el)return;
+      el.style.display=c===cat?'block':'none';
+    });
+  }
+}
+
+/* ── IN-CHAT VOICE / DIALOGUE SYSTEM ─────────────────────────────────────
+   Injects a voice prompt bubble into the chat itself so the interaction
+   feels like a natural conversation rather than a separate form.          */
+
+var voiceMode = {}; /* tracks {ret|gen} -> {active, type} */
+
+function injectVoicePrompt(chatId){
+  /* Don't inject twice */
+  if(voiceMode[chatId] && voiceMode[chatId].active) return;
+  voiceMode[chatId] = {active:true, type:null};
+
+  var c = document.getElementById(chatId+'-msgs');
+  if(!c) return;
+
+  var isGen = chatId === 'gen';
+
+  /* Hide all suggestion groups so only the voice prompt is visible */
+  var prefix = isGen ? 'gsg-' : 'rsg-';
+  ['hr','leave','salary','onboarding','development','it','sales','ops','cp','voice'].forEach(function(cat){
+    var el = document.getElementById(prefix + cat);
+    if(el) el.style.display = 'none';
+  });
+
+  /* Bot prompt bubble */
+  var bubble = document.createElement('div');
+  bubble.id = chatId+'-voice-bubble';
+
+  var av = isGen
+    ? '<div class="label-row"><div class="gen-av" style="width:20px;height:20px;font-size:10px;">\u2756</div><span class="label-nm">HR Assistant</span></div>'
+    : '';
+  var msgCls = isGen ? 'msg-gen' : 'msg-bot';
+
+  bubble.innerHTML = av
+    + '<div class="msg ' + msgCls + '" style="max-width:95%">'
+    + (isGen
+        ? 'Your voice really matters here — and I\'m glad you\'re using it. What would you like to share with Acme? Pick a type below and I\'ll make sure it reaches the right person.'
+        : 'You can share a message with HR using the options below. Select the type that best describes what you would like to send.')
+    + '</div>'
+    + '<div class="sug-row" style="margin-top:8px;" id="' + chatId + '-voice-types">'
+    + '<button class="sug-btn" style="border-color:#185FA5;color:#185FA5;" onclick="pickVoiceType(\'' + chatId + '\',\'question\',this)">Ask a question</button>'
+    + '<button class="sug-btn" style="border-color:#185FA5;color:#185FA5;" onclick="pickVoiceType(\'' + chatId + '\',\'suggestion\',this)">Make a suggestion</button>'
+    + '<button class="sug-btn" style="border-color:#185FA5;color:#185FA5;" onclick="pickVoiceType(\'' + chatId + '\',\'feedback\',this)">Share feedback</button>'
+    + '<button class="sug-btn" style="border-color:#185FA5;color:#185FA5;" onclick="pickVoiceType(\'' + chatId + '\',\'concern\',this)">Raise a concern</button>'
+    + '</div>';
+
+  c.appendChild(bubble);
+  c.scrollTop = c.scrollHeight;
+
+  /* Update input placeholder */
+  var inp = document.getElementById(chatId+'-inp');
+  if(inp) inp.placeholder = 'Select a type above first...';
+  inp.disabled = true;
+}
+
+function pickVoiceType(chatId, type, btn){
+  voiceMode[chatId].type = type;
+
+  /* Dim all type buttons, highlight chosen */
+  var row = document.getElementById(chatId+'-voice-types');
+  if(row){
+    row.querySelectorAll('.sug-btn').forEach(function(b){
+      b.style.opacity = b===btn ? '1' : '0.4';
+      b.disabled = true;
+    });
+    btn.style.background = '#E6F1FB';
+    btn.style.fontWeight  = '500';
+  }
+
+  /* User message showing chosen type */
+  var labels = {
+    question:   'Ask a question',
+    suggestion: 'Make a suggestion',
+    feedback:   'Share feedback',
+    concern:    'Raise a concern'
+  };
+  addMsg(chatId+'-msgs', labels[type], true, chatId==='gen', false);
+
+  var placeholders = {
+    question:   'What would you like to ask HR or management?',
+    suggestion: 'What would you like to suggest? Be as specific as you like.',
+    feedback:   'What feedback would you like to share — what\'s working well, or what could be better?',
+    concern:    'What concerns you? Share as much or as little as you\'re comfortable with.'
+  };
+
+  /* Bot follow-up prompt */
+  var c = document.getElementById(chatId+'-msgs');
+  var isGen = chatId === 'gen';
+  var av = isGen ? '<div class="label-row"><div class="gen-av" style="width:20px;height:20px;font-size:10px;">\u2756</div><span class="label-nm">HR Assistant</span></div>' : '';
+  var msgCls = isGen ? 'msg-gen' : 'msg-bot';
+  var followUps = {
+    question:   isGen ? 'Of course — go ahead and type your question below. I\'ll make sure it reaches HR.' : 'Please type your question in the box below.',
+    suggestion: isGen ? 'Great, I\'d love to hear it. Type your suggestion below and we\'ll pass it on.' : 'Please type your suggestion in the box below.',
+    feedback:   isGen ? 'Thank you for wanting to share that. Type your feedback below — all of it is welcome.' : 'Please type your feedback in the box below.',
+    concern:    isGen ? 'I\'m glad you felt you could raise this. Take your time — type your concern below whenever you\'re ready.' : 'Please type your concern in the box below.'
+  };
+
+  var w = document.createElement('div');
+  w.innerHTML = av + '<div class="msg ' + msgCls + '">' + followUps[type] + '</div>';
+  c.appendChild(w);
+  c.scrollTop = c.scrollHeight;
+
+  /* Enable input */
+  var inp = document.getElementById(chatId+'-inp');
+  if(inp){
+    inp.placeholder = placeholders[type];
+    inp.disabled = false;
+    inp.focus();
+  }
+}
+
+function handleVoiceSubmit(chatId, message){
+  var type = voiceMode[chatId] && voiceMode[chatId].type;
+  voiceMode[chatId].active = false;
+  voiceMode[chatId].type   = null;
+
+  var c    = document.getElementById(chatId+'-msgs');
+  var isGen = chatId === 'gen';
+  var av   = isGen ? '<div class="label-row"><div class="gen-av" style="width:20px;height:20px;font-size:10px;">\u2756</div><span class="label-nm">HR Assistant</span></div>' : '';
+  var msgCls = isGen ? 'msg-gen' : 'msg-bot';
+
+  /* Show the user's message first */
+  addMsg(chatId+'-msgs', message, true, isGen, false);
+
+  /* Reset input */
+  var inp = document.getElementById(chatId+'-inp');
+  if(inp){ inp.value=''; inp.placeholder = isGen ? 'Ask your question in your own words...' : 'Type your question...'; }
+
+  /* Typing indicator */
+  var typing = document.createElement('div');
+  typing.id = chatId+'-voice-typing';
+  typing.innerHTML = av + '<div class="msg ' + msgCls + ' typing"><span></span><span></span><span></span></div>';
+  c.appendChild(typing);
+  c.scrollTop = c.scrollHeight;
+
+  var confirmations = {
+    gen: {
+      question:   'Thank you — your question has been passed on to HR. They aim to respond within three working days, and you\'ll hear back directly. It\'s great that you\'re engaging with us like this.',
+      suggestion: 'That\'s really appreciated. Your suggestion has been noted and will be reviewed by HR. We take all ideas seriously — this kind of input genuinely shapes how Acme develops.',
+      feedback:   'Thank you for taking the time to share that. Your feedback has been received by HR and will be read carefully. Whether it\'s positive or critical, it all helps us do better.',
+      concern:    'Thank you for trusting us with this. Your concern has been passed to HR, who will review it carefully and respond within three working days. You\'re not alone in this, and your voice matters.'
+    },
+    ret: {
+      question:   'Your question has been submitted to HR. You can expect a response within three working days via your Acme email.',
+      suggestion: 'Your suggestion has been submitted to HR for review. Thank you for contributing to how Acme works.',
+      feedback:   'Your feedback has been submitted to HR. It will be reviewed and taken into account.',
+      concern:    'Your concern has been submitted to HR. They will review it and respond within three working days.'
+    }
+  };
+
+  var delay = isGen ? 1400 : 900;
+  setTimeout(function(){
+    var t = document.getElementById(chatId+'-voice-typing');
+    if(t) t.remove();
+    var reply = (confirmations[chatId] && confirmations[chatId][type]) || confirmations[chatId]['question'];
+    var w = document.createElement('div');
+    w.innerHTML = av + '<div class="msg ' + msgCls + '">' + reply + '</div>';
+    c.appendChild(w);
+    c.scrollTop = c.scrollHeight;
+  }, delay);
+}
+
+/* ── SHARED UTILITIES ── */
+function isUrgent(q){
+  var u=['unsafe','bully','harass','discriminat','sexual','assault','complaint','anonymous','intimidat','threatened','groping','unwanted'];
+  return u.some(function(k){return q.toLowerCase().indexOf(k)>-1;});
+}
+function addMsg(cid,html,isUser,isGen,urgent){
+  var c=document.getElementById(cid);
+  var w=document.createElement('div');
+  if(isUser){
+    w.className='user-wrap';
+    w.innerHTML='<div class="msg msg-user">'+html+'</div>';
+  } else if(isGen){
+    var cls=urgent?'msg-alert':'msg-gen';
+    w.innerHTML='<div class="label-row"><div class="gen-av" style="width:20px;height:20px;font-size:10px;">\u2756</div><span class="label-nm">HR Assistant</span></div><div class="msg '+cls+'">'+html+'</div>';
+  } else {
+    var cls2=urgent?'msg-alert':'msg-bot';
+    w.innerHTML='<div class="msg '+cls2+'">'+html+'</div>';
+  }
+  c.appendChild(w);
+  c.scrollTop=c.scrollHeight;
+}
+function showTyping(cid,isGen){
+  var c=document.getElementById(cid);
+  var t=document.createElement('div');
+  t.id='typing-'+cid;
+  var av=isGen?'<div class="label-row"><div class="gen-av" style="width:20px;height:20px;font-size:10px;">\u2756</div><span class="label-nm">HR Assistant</span></div>':'';
+  var cls=isGen?'msg-gen':'msg-bot';
+  t.innerHTML=av+'<div class="msg '+cls+' typing"><span></span><span></span><span></span></div>';
+  c.appendChild(t);
+  c.scrollTop=c.scrollHeight;
+}
+function removeTyping(cid){var t=document.getElementById('typing-'+cid);if(t)t.remove();}
+
+/* ── RETRIEVAL CHATBOT ── */
+var retDB={
+  'holiday|annual leave|days off|time off|vacation':'Full-time employees (40 hours/week) receive <strong>25 holiday days</strong> per year. Part-time employees receive days on a pro-rata basis based on contracted hours. Holiday entitlement accrues monthly; employees who join mid-year receive a pro-rated entitlement. Your current balance is visible in the HR portal under "My Leave". You can carry over a maximum of <strong>10 unused days</strong> to the following year — any days above this limit are forfeited on <strong>31 January</strong>. If you wish to carry over more than 10 days, contact HR in advance to discuss an individual arrangement.',
+  'request leave|book leave|take leave|request time off|request holiday':'Submit your leave request via the <strong>HR portal → "My Leave"</strong>. Your line manager receives an automatic notification and must respond within <strong>5 working days</strong>. You will receive a confirmation email once a decision is made. Requests for 1–2 consecutive weeks should be submitted at least <strong>4 weeks</strong> in advance; longer periods at least <strong>8 weeks</strong> in advance. During peak periods (July–August and around bank holidays), a maximum number of team members may be absent simultaneously — check the team schedule first. Leave can be declined if business continuity is at risk; in that case your manager will provide a written explanation.',
+  'sick|sickness|absent|not well|illness|unwell|doctor note|fit note|two weeks sick|more than two weeks|long term sick':'On your first day of illness, notify your line manager by phone before 9:00 am and register your absence in the HR portal under "Sickness Absence" — email or message alone is not sufficient. If you are off for more than <strong>5 consecutive working days</strong>, a doctor\'s note is required. If absence exceeds 2 weeks, the occupational health advisor is brought in to advise on return-to-work arrangements. If you recover earlier than expected, notify your manager by phone before 9:00 am on the day you return. All absence is treated confidentially.',
+  'remote work|work from home|home working|hybrid|wfh':'Employees may work from home up to <strong>3 days per week</strong>, in agreement with their manager; actual days are agreed at team level. You receive a <strong>£2.00 remote working allowance per day</strong>, paid through monthly payroll. Acme also reimburses an ergonomic desk chair (up to £300) and an additional monitor (up to £200) via the HR portal under "Remote Work Equipment". Rules: you must be reachable during normal working hours, use a secure internet connection (VPN preferred), and hold confidential conversations only in private locations. Employees in roles requiring physical presence are not eligible.',
+  'special leave|exceptional leave|compassionate|bereavement|jury|wedding|marriage':'Special leave: marriage or civil partnership (2 days), marriage of a family member (1 day), death of a partner/child/parent (4 days), death of a 2nd-degree family member (1 day), moving house (1 day), work anniversary (1 day), jury duty (full duration). Request via the HR portal with supporting documentation. Special leave does <em>not</em> count against your annual holiday.',
+  'parental leave|maternity|paternity|baby|child|pregnant':'You are entitled to <strong>26 weeks of parental leave</strong> per child (before the child\'s eighth birthday), including the option to take it flexibly (e.g. one or two days per week). The first <strong>9 weeks</strong> are partially paid at 70% of standard pay up to the statutory cap; the remaining 17 weeks are unpaid unless additional arrangements apply. Submit the request at least <strong>2 months</strong> in advance via HR. HR will produce a leave plan and manage any statutory processes.',
+  'commuting|commute|travel allowance|mileage|public transport':'Commuting allowance: up to 10 km \u2014 no reimbursement. 11\u201330 km: \u00a30.23/km. 31\u201340 km: \u00a30.21/km. Maximum 40 km reimbursed. Public transport (2nd class monthly pass) is also reimbursed if cheaper. Remote working days are not included.',
+  'salary|pay|payment|payslip|payday|wages':'Salary is paid on the <strong>last working day of the month</strong>. If that day falls on a weekend or bank holiday, payment is made on the last working day before it. Your payslip is available digitally in the HR portal under "My Payslips" on the day of payment — you receive an email notification. To update your bank details, notify HR at least <strong>5 working days</strong> before month end via hr@acme.com. Annual tax statement issued by <strong>1 February</strong>. Queries: payroll@acme.com or ext. 2210.',
+  'expense|claim|receipt|reimburse|business cost':'Submit expenses via the <strong>HR portal → "Expense Claims"</strong> within <strong>30 days</strong> of the expenditure. Always attach an original receipt or digital invoice — claims without documentation will not be paid. Expenses over <strong>£500 per line item</strong> require prior manager approval. Flights, hotels, and rental cars must be booked via the company travel portal, not paid privately and reclaimed. Meals during meetings are reimbursable up to <strong>£35 per person</strong> (incl. VAT). Approved claims are paid in the next payroll run. Queries: finance@acme.com.',
+  'pension|retirement|workplace pension':'Acme provides a collective workplace pension through <strong>Pension Provider XYZ</strong>. All employees on contracts longer than 3 months are automatically enrolled from their first working day. The scheme is defined contribution: <strong>6% employer</strong> and <strong>3% employee</strong> contributions (deducted automatically from salary). View your balance and annual statement via the provider\'s online portal. Nominations can be updated via the pension portal. Acme holds an annual pension information session — dates on the intranet.',
+  'health insurance|wellbeing|gym|eap|psychologist|mental health':'Acme offers a <strong>10% group health insurance discount</strong> with Health Insurer ABC (participation voluntary — sign up via HR portal → Benefits → Health Insurance). Additional wellbeing benefits: corporate gym membership via FitNL (200+ centres); up to <strong>6 free anonymous sessions</strong> with a qualified psychologist via the Employee Assistance Programme (request via hr@acme.com or ext. 2200); a comprehensive preventive health check every <strong>2 years</strong> (fully covered by Acme); and an ergonomic workstation assessment available on request.',
+  'bonus|performance pay|annual bonus':'The bonus has two equal components: an <strong>individual performance element</strong> (max. 5% of annual salary, based on the December review outcome) and a <strong>company results element</strong> (max. 5%, based on company-wide performance against targets). Both are paid in <strong>February</strong> for the preceding calendar year. You are entitled to a pro-rated bonus if employed on <strong>31 December</strong> and having worked at least 3 months during the year. An "unsatisfactory" performance rating results in forfeiture of the individual element. Bonus letters are issued by HR at the same time as payment.',
+  'first day|before i start|new starter|joining|start date':'Before your first day, complete all onboarding documents via the personal onboarding link in your welcome email: copy of photo ID, tax starter checklist (P46), bank account details, emergency contact, and any relevant declarations. Submit these promptly — delays may affect your first payroll. Your line manager will contact you before day 1 to confirm arrival time, where to report, and parking. Your access badge and laptop will be ready at reception on day 1.',
+  'onboarding|first weeks|induction|probation|settling in':'The onboarding programme is built around the 5 C\'s: Compliance, Clarification, Culture, Connection, and Confidence. Week 1: introductions, office tour, system access, meetings with HR and your manager. Weeks 2–4: role-specific training and meetings with relevant departments. Month 3 ends with a probationary review. All tasks listed in the HR portal → "My Onboarding" — you receive reminders for outstanding actions. Questions: onboarding@acme.com.',
+  'system access|login|account|credentials|portal access':'On day 1 you receive login credentials for your Acme account, giving access to email, the intranet, Microsoft 365, and the HR portal. Elevated permissions (financial systems, CRM, specialist software) are requested by your manager before your start date. If a system is inaccessible, your manager submits an access request via the IT portal — standard processing is 1–2 working days; urgent requests can be escalated to the IT helpdesk at ext. 2200. On day 1: change your temporary password, set up <strong>2FA</strong>, and install the <strong>VPN client</strong>.',
+  'employee handbook|handbook|company handbook|get access to systems|system access':'The employee handbook is on the intranet under <strong>HR Documents → Employee Handbook</strong>. It covers terms and conditions, leave policy, code of conduct, IT and information security policy, health and safety, complaints and appeals procedure, remote working policy, and expense reimbursement policy. New joiners receive it via the onboarding portal and are asked to confirm they have read it. The handbook is reviewed annually; updates are communicated via email and the intranet.',
+  'training|learning|course|budget|development fund':'Acme covers up to <strong>£1,500 per year</strong> per employee for job-related training, courses, workshops, and professional certifications. Check your remaining balance in the HR portal → "My Learning Budget". Process: (1) discuss with your manager in the context of your development plan; (2) submit a training request via the HR portal including course description, cost, and relevance; (3) once approved, Acme is invoiced directly or reimburses you on completion. Training exceeding £1,500 can be requested as a bespoke arrangement — a repayment clause applies if you leave within 2 years. Internal training also available via the Acme Academy on the intranet.',
+  'career progression|promotion|internal vacancy|career growth':'Internal vacancies are posted at least <strong>5 working days</strong> before external advertising. To apply: minimum <strong>12 months</strong> in your current role (unless otherwise agreed with HR), a rating of "meets expectations" or above, and inform your manager before applying. If you\'re interested in a different area but no vacancy exists yet, request a career development conversation with HR. Acme also runs a mentoring programme — register via hr@acme.com or the intranet.',
+  'pdp|personal development|development plan':'A Personal Development Plan (PDP) is created with your line manager to map out skills you want to develop and how to achieve that. Steps: (1) reflect on your ambitions and development needs; (2) schedule a PDP conversation with your manager (can be combined with the January goal-setting meeting); (3) complete the PDP form in the HR portal and have both parties sign it; (4) review progress at least twice a year. Not mandatory, but strongly encouraged. HR can support — contact hr@acme.com.',
+  'code of conduct|conduct policy|integrity|values|ethics':'The Code of Conduct sets out the standards and values Acme expects from every employee — integrity, handling confidential information, respectful conduct, appropriate use of company resources, and compliance with laws and regulations. Find it on the intranet under <strong>HR Documents → Policy → Code of Conduct</strong>. New employees sign it during onboarding. It is reviewed annually; any changes are communicated via email and the intranet. Questions about how it applies to a specific situation? Contact HR at hr@acme.com.',
+  'performance review|appraisal|review meeting|goal setting':'The annual review cycle has three fixed moments: (1) <strong>Goal-setting meeting (Jan/Feb)</strong> — set SMART goals with your manager; (2) <strong>Mid-year check-in (Jun/Jul)</strong> — review progress, no formal rating impact; (3) <strong>Annual review (Nov/Dec)</strong> — formal assessment against goals and competencies, which partly determines salary increases and bonus payments. Acme also encourages continuous informal feedback throughout the year. Review forms are in the HR portal under "My Review".',
+  'social media|twitter|linkedin|instagram':'Acme encourages employees to act as brand ambassadors on social media, with these guidelines: make clear that personal posts represent your own views (not Acme\'s); do not share confidential company information, client data, or financial details; use company logos or brand names only with Marketing approval; do not personally respond to critical posts about Acme — refer these to official channels. The full social media policy is on the intranet under <strong>HR Documents → Policy → Social Media</strong>. Questions: communications@acme.com.',
+  'business travel|travel policy|flights|hotel|per diem':'Business travel requires manager approval in advance; trips over <strong>£500</strong> also need Finance approval. Book flights and hotels exclusively via the <strong>company travel portal</strong> (travel.acme.com) — this ensures central recording and automatic travel insurance. Allowances: daily allowance <strong>£35</strong> (full day, 8+ hours away); <strong>£17.50</strong> half-day (4–8 hours); hotel max. <strong>£150/night</strong> UK / <strong>£200/night</strong> international; economy class flights under 6 hours (business class only for 6+ hours with explicit approval). Submit all expenses within <strong>30 days</strong> via the HR portal under "Expense Claims".',
+  'password|reset|locked out|cannot login|forgotten password|system access|get access to systems|it access':'<p>There are two ways to reset your password:</p><ol><li><strong>Self-service (preferred):</strong> Go to <strong>portal.acme.com/password</strong> and click "Forgot password". You will receive a reset link to the personal email address you provided when you joined. Follow the steps to set a new, strong password.</li><li><strong>Via the IT helpdesk:</strong> If self-service doesn\'t work, call the IT helpdesk at ext. <strong>2200</strong> (Mon–Fri, 8:00 am–6:00 pm) or email it@acme.com. Your identity will be verified over the phone via a security question.</li></ol><p>Acme\'s password requirements: at least 12 characters, combining upper and lower case letters, numbers, and symbols. Reuse of your last 10 passwords is not permitted. Passwords expire automatically after <strong>90 days</strong> — you will receive reminders 7 and 3 days in advance.</p>',
+  'two factor|two-factor|2fa|authenticator|mfa|multi factor|set up two factor|set up 2fa':'2FA is mandatory for all logins outside the office network. Setup: (1) go to IT portal → "Security" → "Set up 2FA"; (2) download the <strong>Microsoft Authenticator</strong> app; (3) scan the QR code displayed in the portal; (4) enter the confirmation code to complete setup. Codes are 6 digits, valid for 30 seconds. If you lose your phone, contact IT for a temporary recovery code. If your phone is lost or stolen, report to IT immediately so the 2FA link can be removed.',
+  'phishing|suspicious email|spam|scam|clicked link':'Do not click anything — no links, no attachments. Click the <strong>"Report phishing"</strong> button in Outlook (top right of the ribbon), which forwards the email to the security team and removes it from your inbox. If the button is unavailable, forward as an attachment to security@acme.com. <strong>If you accidentally clicked a link:</strong> disconnect your laptop from the internet immediately, call IT at ext. 2200, and change your password from another device as quickly as possible. You will never be penalised for reporting — it is always the right thing to do.',
+  'vpn|cisco anyconnect|remote access|connect from home':'Download the <strong>Cisco AnyConnect</strong> VPN client via the IT portal → Downloads. Server address: <strong>vpn.acme.com</strong>. Log in with your Acme account and 2FA code. Daily use: open AnyConnect and click "Connect" — you are connected when you see the green padlock icon. Click "Disconnect" to end. You must use the VPN any time you access company systems outside the office network (home, hotel, café, etc.). Issues? Restart the app and check your internet connection, or call IT at ext. 2200.',
+  'stolen laptop|lost device|missing computer|device stolen|replacement laptop|get a replacement laptop':'Report to IT <strong>immediately</strong> at ext. 2200 (available 24/7 for security incidents) — IT will activate a remote wipe without delay. Report the theft or loss to the police and request a copy of the police report. Send the report reference number and a brief description to it@acme.com and your line manager. HR and Legal will assess whether a notification to the ICO is required — legally mandatory within <strong>72 hours</strong> if personal data of third parties has been compromised. Acme holds cyber insurance covering the material cost; replacement equipment will be arranged as quickly as possible.',
+  'software|install|application|approved software':'Software on the <strong>approved software list</strong> (IT portal → Software) may be installed without additional approval. All other software requires a request via the IT portal — standard processing time is 1–2 working days. Installing non-approved software without authorisation is a breach of Acme\'s IT security policy and may result in disciplinary action. If unsure whether an application is permitted, contact the IT helpdesk before installing. All software on Acme devices is subject to audit; devices with non-approved software may be wiped without notice.',
+  'product information|product spec|datasheet|product library':'All official product documentation is in the <strong>Sales portal → "Product Library"</strong> (sales.acme.com), organised by product line. Contains: product overviews and datasheets (client-facing and internal), technical specifications, industry use cases (retail, healthcare, logistics), the client-shareable product roadmap, and demo materials. Always use the <strong>most recent versions</strong> — outdated versions are marked with a yellow banner. Questions: productmarketing@acme.com.',
+  'discount|price reduction|deal|negotiation|pricing':'Acme operates a tiered discount structure: up to <strong>10%</strong> — Account Manager decides independently; <strong>10–20%</strong> — written Sales Manager approval required (include client context, competitive situation, and strategic value); <strong>above 20%</strong> — Commercial Director and Finance approval with a full ROI business case. All approvals must be recorded in Salesforce against the relevant opportunity. Circumventing discounts via free add-ons, extended payment terms, or other arrangements without approval is not permitted. See the Discount Policy in the Sales portal for full guidelines.',
+  'crm|salesforce|customer data|pipeline|opportunity':'Acme uses <strong>Salesforce</strong> as its central CRM. Accurate, timely data entry is mandatory — managers use it for forecasts, coaching, and deal support. Required actions: log all client calls, emails, and meetings within <strong>24 hours</strong> as activities; keep opportunities updated with close date, deal stage, and expected value; link contacts to the correct account and opportunity; close lost deals with a "loss reason" for win/loss accuracy. Training: Salesforce Trailhead (free) or via the IT portal. Issues: crm@acme.com or ext. 2215.',
+  'battlecard|competitor|competitive intelligence':'Competitive battlecards are in the <strong>Sales portal → "Competitive Intelligence"</strong>. They are updated monthly by Product Marketing and include head-to-head comparisons, typical client objections, and recommended responses for each competitor. Always check the "Last updated" date before a client meeting. If a competitor has made a significant change not yet reflected, contact productmarketing@acme.com — they can provide interim guidance within 24 hours.',
+  'roi|return on investment|value justification|business case':'Use the <strong>ROI calculator</strong> in the Sales portal. Steps: (1) gather the client\'s current costs in the area Acme addresses; (2) enter data into the calculator — it automatically outputs expected return and payback period; (3) tailor the output using the PowerPoint template in the Sales portal; (4) have the Sales Manager review the figures before presenting to the client. For complex ROI calculations or full business cases, Product Marketing and Presales can assist — book via presales@acme.com.',
+  'opening procedures|daily procedures|morning checklist|red status|system status|amber status|dashboard status':'<strong>Opening (8:00–9:00 am):</strong> check system status on the Operations Dashboard — all green, proceed; any red or amber statuses report to IT immediately. Review outstanding tickets and overnight notifications. Check the daily schedule for planned maintenance. Post a morning status update in the Operations team channel on Teams. <strong>Closing (4:30–5:00 pm):</strong> process all outstanding customer orders. Log unresolved incidents in the ticketing system with status and priority. Send an end-of-day report to your manager. Lock your workstation and log out of all systems. Full checklist in the Operations portal → "Procedures".',
+  'order|customer order|process order|order workflow':'Fixed workflow — deviating requires team leader approval: (1) send order acknowledgement to customer within <strong>1 hour</strong> using the standard email template; (2) enter order fully in the ERP system, double-checking names, addresses, and product codes; (3) verify stock availability — if insufficient, notify customer immediately and propose alternatives; (4) confirm a realistic delivery date; (5) hand off to logistics via the Orders portal; (6) send tracking info to customer once logistics has dispatched; (7) verify that Finance has processed the invoice correctly.',
+  'weekly report|submit report|operations report':'Weekly operational reports must be submitted every <strong>Friday before 4:00 pm</strong> via the Operations portal using the standard template (Templates → Weekly Report). Each report must include: number of orders processed (successful / failed / pending), open and resolved tickets, incidents or exceptions during the week, team capacity utilisation, and flagging of recurring bottlenecks or risks. Submit to your line manager with a copy to finance@acme.com. If you cannot submit on time, notify your manager in advance — repeated late submissions are noted in your performance review.',
+  'safety incident|accident|near miss|workplace safety|injury':'Report all incidents — including near misses — to your manager and H&S Officer immediately. <strong>If there is injury: call 999 first.</strong> Complete the incident report form in the Operations portal → Safety → Report an Incident. Preserve evidence where possible (photos, witness statements). All incidents are investigated by the H&S Officer within 5 working days; you will receive feedback on the outcome and preventive measures. Serious workplace accidents are reported to the <strong>Health and Safety Executive (HSE)</strong> by HR and Legal — not by individual employees.',
+  'unsafe|threatening|feel unsafe|fear at work|intimidated':'If you feel unsafe at work — whether due to general environment or specific behaviour by a colleague or manager — there are always people ready to help. Steps: (1) <strong>immediate danger: call 999</strong>; (2) <strong>Confidential Support Officer</strong> (ext. 2250 or anonymously via 0800-2222) — all conversations strictly confidential, no steps taken without your consent; (3) <strong>HR</strong> (hr@acme.com or ext. 2200); (4) your line manager, if the behaviour is not coming from them. You do not need to prove seriousness to ask for help — feeling unsafe is always a valid reason to reach out.',
+  'bullied|bullying|harassed|excluded|ostracised':'Workplace bullying is repeated, systematic negative behaviour directed at a specific colleague — distinguished from a one-off conflict by its repetitive and targeted nature. Examples: verbal abuse or humiliation, persistent exclusion from meetings or activities, deliberately providing incorrect information, spreading rumours, sabotaging someone\'s work, or constant belittling remarks. Bullying violates Acme\'s Code of Conduct and the Health and Safety at Work Act. Report to the Confidential Support Officer (ext. 2250 / 0800-2222 anonymously) or HR. Formal complaint via hr@acme.com — Acme must respond within <strong>10 working days</strong>. Those found guilty may face disciplinary action up to dismissal.',
+  'discriminat|unfair treatment|prejudice|racism|sexism|ageism':'Discrimination means unfair or unequal treatment based on a protected characteristic. Under the <strong>Equality Act 2010</strong>, protected characteristics include: age, disability, gender reassignment, marriage and civil partnership, pregnancy and maternity, race, religion or belief, sex, and sexual orientation. Examples: exclusion from promotion based on background, unequal pay, negative remarks about a protected characteristic, or less favourable treatment after disclosing a pregnancy or disability. Discrimination is unlawful and contrary to Acme policy — it may result in dismissal. Report to the Confidential Support Officer (ext. 2250 / 0800-2222) or HR. External complaints: Equality and Human Rights Commission (equalityhumanrights.com).',
+  'sexual harassment|unwanted contact|inappropriate|boundary|assault|groping':'Sexual harassment is any unwanted conduct of a sexual nature that violates dignity or creates an intimidating, hostile, degrading, or offensive environment. It can come from colleagues, managers, clients, or suppliers. Examples: unwanted physical contact, sexually suggestive comments or jokes, sending inappropriate messages or images, staring in a sexually threatening way, or pressure for sexual favours. It is unlawful under the <strong>Worker Protection (Amendment of Equality Act 2010) Act</strong>. Acme is legally required to take reasonable steps to prevent it and will always investigate a credible complaint. Report to the Confidential Support Officer (ext. 2250 / 0800-2222 anonymously) or HR. External support: <strong>Rape Crisis England &amp; Wales</strong>: 0808 802 9999 (free, 24/7). If in immediate danger: call <strong>999</strong>.',
+  'formal complaint|grievance|file complaint|raise complaint':'Submitting a formal complaint is your right. Steps: (1) contact the Confidential Support Officer for guidance; (2) submit in writing to HR at hr@acme.com or via the complaints form in the HR portal; (3) written acknowledgement within <strong>3 working days</strong>; (4) impartial investigation including hearing both sides — target duration <strong>10 working days</strong>; (5) written decision with findings and any measures to be taken. You may be supported by the Confidential Support Officer throughout. If unsatisfied with the outcome, an appeals procedure is available. Retaliation after a complaint is strictly prohibited and is itself a serious policy breach.',
+  'anonymous|anonymity|confidential report|no one can know':'Anonymous reporting is possible via the external Confidential Support Officer: <strong>0800-2222</strong> (free, Mon–Fri 8:00 am–6:00 pm). No name, job title, or department is required. The Support Officer has a professional duty of confidentiality and will never take any action without your explicit consent. Conversations remain strictly within the room — nothing will happen unless you choose to take it further.',
+  'manager behaviour|supervisor|line manager complaint|boss|misconduct':'If unwanted behaviour is coming from your manager, you are not obliged to report it to them. You can contact: the <strong>Confidential Support Officer</strong> (ext. 2250, or anonymously via 0800-2222); <strong>HR</strong> (hr@acme.com or ext. 2200); or your manager\'s own line manager. Retaliation is strictly prohibited. No steps will be taken without your explicit consent.',
+  'my rights|rights as employee|what rights|protected|complaint rights':'When submitting a complaint you have the right to: an <strong>impartial investigation</strong> (handler with no personal interest in the outcome); <strong>privacy</strong> (GDPR-compliant, only those directly involved have access); <strong>support</strong> from the Confidential Support Officer or a trade union representative at formal meetings; <strong>updates and a written outcome</strong>; <strong>protection from retaliation</strong> (retaliation is itself treated as a serious policy breach); and a <strong>right of appeal</strong> if you disagree with the outcome.',
+  'external help|outside acme|independent support|acas|citizens advice':'In addition to Acme\'s internal channels, external organisations you can contact — sometimes anonymously, always independently of your employer: <strong>ACAS</strong> (acas.org.uk / 0300 123 1100) — workplace dispute support; <strong>EHRC</strong> (equalityhumanrights.com) — discrimination complaints; <strong>Victim Support</strong> (08 08 16 89 111) — emotional support and practical help; <strong>Rape Crisis England &amp; Wales</strong> (0808 802 9999, free, 24/7); <strong>HSE</strong> (hse.gov.uk) — serious safety breaches; <strong>Citizens Advice</strong> (citizensadvice.org.uk) — free employment rights advice; and your trade union if you are a member. You do not need to exhaust internal steps before seeking external help.'
+};
+
+function matchRet(q){
+  var ql=q.toLowerCase();
+  for(var keys in retDB){
+    if(keys.split('|').some(function(k){return ql.indexOf(k)>-1;}))return retDB[keys];
+  }
+  return 'I wasn\'t able to find an exact match for your question in the knowledge base. Try one of the suggested topics above or contact us at <strong>support@acme.com</strong> or ext. 2200.';
+}
+function retQ(q){
+  addMsg('ret-msgs',q,true,false,false);
+  showTyping('ret-msgs',false);
+  var urg=isUrgent(q),ans=matchRet(q);
+  setTimeout(function(){removeTyping('ret-msgs');addMsg('ret-msgs',ans,false,false,urg);},900);
+}
+function retSend(){
+  var inp=document.getElementById('ret-inp');
+  var q=inp.value.trim();if(!q)return;
+  if(voiceMode['ret'] && voiceMode['ret'].active && voiceMode['ret'].type){
+    inp.value='';
+    handleVoiceSubmit('ret', q);
+    return;
+  }
+  inp.value='';retQ(q);
+}
+
+/* ── GENERATIVE CHATBOT — scripted simulation ── */
+
+/* ---- Vera's personality engine ------------------------------------------ */
+/* Vera adapts her opening to what she detects in the user's message.
+   She references the user's own words, varies sentence structure,
+   adjusts warmth to urgency, and always ends with a natural follow-up.     */
+
+var genHistory = [];   /* stores {q, a} pairs for context-awareness */
+
+/* ------------------------------------------------------------------
+   RESPONSE DATABASE — 60+ topics, each with 2–3 variants so repeat
+   questions feel different. Vera picks a variant based on the turn
+   count so the same button press gives a fresh answer each session.
+   ------------------------------------------------------------------ */
+var veraDB = {
+
+  /* ── LEAVE & ABSENCE ──
+     CHV strategy per Liebrecht & Van Hooijdonk (2020):
+     Message Personalization: direct address (you/your), personal pronouns (I/we)
+     Informal Speech: non-verbal cues (:) / !), interjections (Oh! / Great!)
+     Invitational Rhetoric: acknowledge, sympathy/empathy, stimulating dialogue, well-wishing
+  */
+  'holiday|annual leave|days off|vacation|time off|how many days|how much leave|leave entitlement|how many holidays|days holiday|leave allowance': [
+    function(q,h){ return adapt(q,
+      'Hi! Great question :) As a full-time employee, you get 25 holiday days a year — and if you work part-time, your entitlement is adjusted proportionally to your hours. You can always check your live balance in the HR portal under My Leave, which is super handy when you\'re planning ahead. One thing worth knowing: you can carry over up to 10 unused days into the following year, but anything beyond that is forfeited on 31 January. So it\'s worth keeping an eye on your balance as the year end approaches!',
+      'Oh, good thinking to check :) You\'re entitled to 25 days of annual leave if you work full-time — part-timers get the same on a pro-rata basis. Your running total is always visible in the HR portal under My Leave. Just so you know: you can roll up to 10 days over to the new year, but no more than that — unused days above the limit disappear on 31 January. Anything I can help you with from there?',
+      h, 'Do you have a particular period in mind you\'re trying to plan around? I\'d be happy to walk you through the request process too :)', 'Would it help if I walked you through how to submit your leave request?');
+    }
+  ],
+  'request leave|book leave|apply for leave|submit leave|take holiday|how do i request|how to book leave|book time off|submit time off|annual leave request|put in leave': [
+    function(q,h){ return adapt(q,
+      'Sure thing! Requesting leave is actually really straightforward :) Head to the HR portal, open My Leave, pick your dates and hit submit. Your manager gets an automatic notification and has five working days to respond — you\'ll get a confirmation email once they do. The main thing to keep in mind is lead time: give at least four weeks\' notice for a week or two off, and eight weeks for anything longer. Hope you\'ve got something nice planned!',
+      'Of course — the quickest route is through the HR portal under My Leave. Choose your dates, submit, and your manager gets notified straight away. They have five working days to respond either way. One tip from me: for longer stretches or popular periods like summer, earlier is always better since team capacity fills up fast! Let me know if you need help with anything else.',
+      h, 'Is there a particular date range you\'re looking at? :)', 'Do you want me to explain what happens if your request is declined?');
+    }
+  ],
+  'sick|illness|unwell|not feeling well|sickness|absent due to illness|call in sick|i am sick|feel sick|i feel ill|report sick|sick today|off sick|what do i do when sick|sick leave|sick note|calling in sick|doctor note|doctors note|need a note|when do i need|off for more than|two weeks sick|long term sick': [
+    function(q,h){ return adapt(q,
+      'I hope you feel better soon! Here is what you need to do: On your first day of illness, notify your line manager by phone before 9:00 am and register your absence in the HR portal under "Sickness Absence" — email or message alone is not sufficient. If you are off for more than <strong>5 consecutive working days</strong>, a doctor\'s note is required. If absence exceeds 2 weeks, the occupational health advisor is brought in to advise on return-to-work arrangements. If you recover earlier than expected, notify your manager by phone before 9:00 am on the day you return. All absence is treated confidentially.',
+      'Sorry to hear you\'re not feeling well! Here is what you need to do: On your first day of illness, notify your line manager by phone before 9:00 am and register your absence in the HR portal under "Sickness Absence" — email or message alone is not sufficient. If you are off for more than <strong>5 consecutive working days</strong>, a doctor\'s note is required. If absence exceeds 2 weeks, the occupational health advisor is brought in to advise on return-to-work arrangements. If you recover earlier than expected, notify your manager by phone before 9:00 am on the day you return. All absence is treated confidentially.',
+      h, 'Is there anything else I can help you with?', 'Do you have any questions about the process?');
+    }
+  ],
+  'parental leave|maternity|paternity|baby|pregnant|child|new parent': [
+    function(q,h){ return adapt(q,
+      'Oh, congratulations — how exciting! :) You\'re entitled to 26 weeks of parental leave per child, which you can use any time before the child turns eight. You can also spread it across part-time days rather than taking it all in one go if that suits you better. The first nine weeks are partially paid at 70% of your standard pay. The main ask from HR is just to give them at least two months\' notice — they\'ll sort all the paperwork and put together a leave plan with you.',
+      'Congratulations! :) Acme offers 26 weeks of parental leave per child — flexible enough to take in one block or spread out before the child\'s eighth birthday. Nine of those weeks are paid at 70% of your normal pay. All you need to do is give HR a heads-up at least two months before your planned start date and they\'ll handle everything from there. Wishing you all the best with it!',
+      h, 'Would you like to know how this works alongside any other leave you might be entitled to?', 'Do you want me to explain what the pay calculation looks like in practice?');
+    }
+  ],
+  'special leave|compassionate|bereavement|jury duty|jury|moving house|wedding|marriage|civil partnership': [
+    function(q,h){ return adapt(q,
+      'Good news — special leave exists so you don\'t have to use your holiday allowance for life\'s bigger moments :) The entitlements are: two days for your own marriage or civil partnership, four days if a close family member passes away, one day for moving house, and jury duty is covered for however long it takes. Just request it through the HR portal and attach any supporting documents you have. I hope whatever it\'s for goes smoothly!',
+      'I can imagine this might be a stressful time, so it\'s good you\'re checking :) You won\'t need to use annual leave for this — special leave covers things like your own wedding (two days), bereavement of a close family member (four days), a house move (one day), and jury service for however long it lasts. Just request it via the HR portal and your manager will be notified. Is there a specific situation I can help you think through?',
+      h, 'Is there a specific situation you\'d like me to look into for you?', 'Do you need the full list of qualifying circumstances?');
+    }
+  ],
+  'carry over|rollover|unused days|lapse|forfeit|january': [
+    function(q,h){ return adapt(q,
+      'Great that you\'re thinking ahead! :) You can carry a maximum of 10 unused holiday days into the following calendar year. Anything above that forfeits automatically on 31 January — it\'s one of those things that can sneak up on you if it\'s been a busy year. If you genuinely can\'t take the time because of workload, it\'s worth having a conversation with your manager and HR sooner rather than later, as they may be able to make an arrangement.',
+      'Ah, worth keeping in mind! :) The carry-over limit is 10 days — anything beyond that disappears on 31 January of the new year. If there\'s a legitimate reason you couldn\'t take the leave, HR may be able to look at an individual arrangement, but that really needs to be agreed in advance. Would it help to know how to check your current balance?',
+      h, 'Do you know roughly how many days you have left this year?', 'Would it help to know how to check your current balance in the portal?');
+    }
+  ],
+  'commut|travel allowance|mileage|public transport|train|travel to work': [
+    function(q,h){ return adapt(q,
+      'Good question! :) Your commuting allowance is based on the one-way distance from your home to the office. Below ten kilometres there\'s no reimbursement. From eleven to thirty kilometres you get £0.23 per kilometre, and from thirty-one to forty you get £0.21 — with forty kilometres being the maximum regardless of actual distance. If you use public transport, Acme covers the cost of a second-class monthly pass as long as that\'s cheaper than the mileage calculation. Does that make sense for your situation?',
+      'Sure, happy to help with that :) Your allowance depends on distance: nothing for under ten kilometres, £0.23 per km up to thirty, and £0.21 per km from thirty-one to forty — that\'s the cap. Public transport (second-class monthly pass) is also covered as long as it\'s cheaper than the mileage rate. Remote working days don\'t count, and you register your travel details once in the HR portal. Would you like help working out which option is better for your commute?',
+      h, 'Would you like help working out whether mileage or public transport works out better for you? :)', 'Would you like to know how to register your travel details in the portal?');
+    }
+  ],
+
+  /* ── SALARY & BENEFITS ── */
+  'salary|pay|wages|paid|payday|payslip|when do i get paid': [
+    function(q,h){ return adapt(q,
+      'Great question :) Your salary lands on the last working day of every month. Your payslip is available in the HR portal on that same day, and you\'ll get an email notification as soon as it\'s ready. If you ever need to update your bank details, do it at least five working days before the end of the month — otherwise it won\'t take effect until the following month. And your annual tax statement comes through by 1 February each year. Anything else I can help clarify?',
+      'Sure! :) You\'re paid on the last working day of the month, every month — it\'s always the same. Payslips appear in the HR portal on that day and you\'ll be notified by email. One thing to keep in mind: if you need to change your bank account details, let HR know at least five working days before month-end or it\'ll miss that month\'s run. Your annual tax statement arrives by 1 February. Is there something specific about your pay I can help with?',
+      h, 'Is there something specific about your pay you wanted to check or change?', 'Do you need to know how to update your bank details or contact payroll?');
+    }
+  ],
+  'expense|claim|reimburse|receipt|business cost|declare expenses': [
+    function(q,h){ return adapt(q,
+      'Of course — glad you\'re keeping track of those :) Business expenses go through the HR portal under Expense Claims. Attach a receipt or invoice for every line — digital photos or PDFs are completely fine. You have 30 days from the date of the expense to submit, so try not to let them pile up! Anything over £500 on a single line needs your manager\'s approval before you incur the cost, not retrospectively. Meals in meetings are covered up to £35 per person including VAT. Let me know if you have a specific expense you\'re unsure about!',
+      'Sure thing! :) To claim expenses, head to Expense Claims in the HR portal. Always attach your receipt — and get it in within 30 days of the purchase. If any single item is over £500, you\'ll need prior manager approval rather than retrospective sign-off. Approved claims get paid in the next monthly payroll run. Is there a specific expense you\'re wondering about?',
+      h, 'Is there a specific expense you\'re not sure is claimable?', 'Do you want to know the policy on a particular type of cost — travel, meals, or equipment? :)');
+    }
+  ],
+  'pension|retirement|contributions|workplace pension': [
+    function(q,h){ return adapt(q,
+      'Good thinking to look into this :) Acme automatically enrols everyone with a contract longer than three months into the workplace pension with Pension Provider XYZ. The split is six percent from Acme and three percent from you, which comes out of your pay automatically — so no action needed from you. You can view your balance and annual statement via the provider\'s own online portal. If life circumstances change — getting married or a bereavement, for instance — do update your nominated beneficiary there too. Anything specific you\'d like to know more about?',
+      'Great that you\'re thinking about this! :) You\'re automatically enrolled in Acme\'s pension scheme if your contract is longer than three months — Acme puts in six percent and you contribute three, deducted from your monthly pay. The provider\'s portal is where you\'d check your balance, update beneficiaries or review your investment choices. Acme also runs an annual pension information session — dates go out via the intranet. Would you like to know who to contact about the scheme?',
+      h, 'Is there anything specific about the pension you\'d like to dig into? :)', 'Would it be helpful to know who to contact about the scheme?');
+    }
+  ],
+  'bonus|annual bonus|performance bonus|incentive': [
+    function(q,h){ return adapt(q,
+      'Good question :) The bonus at Acme has two parts. The individual performance element is worth up to five percent of your annual salary and is tied to how you scored in the December review. The company results element is also up to five percent and reflects how the business did overall. Both are paid in February for the previous calendar year. To be eligible, you need to be employed on 31 December with at least three months of service under your belt. Does that help?',
+      'Of course! :) There are two bonus components — an individual one tied to your annual review (up to five percent of salary) and a company-wide one based on business results (also up to five percent). Payment comes in February for the year just gone. You need to be on payroll on 31 December and have worked at least three months that year to qualify. An "unsatisfactory" rating does remove the individual element. Any specific questions about how yours is calculated?',
+      h, 'Do you have a specific question about the bonus calculation or timing? :)', 'Would it help to know more about how the performance rating connects to the payout?');
+    }
+  ],
+  'health|wellbeing|gym|eap|psychologist|counselling|mental health|employee assistance': [
+    function(q,h){ return adapt(q,
+      'Oh, I\'m really glad you asked :) There\'s quite a bit available and it\'s genuinely good stuff. Acme has a group health insurance deal that gives a ten percent discount on premiums — it\'s completely voluntary but easy to join via the HR portal under Benefits. Through the Employee Assistance Programme you can access up to six free, fully anonymous sessions with a qualified psychologist — just request through hr@acme.com. There\'s also a corporate gym discount, a free biennial health check, and an ergonomic workstation assessment on request. Your wellbeing genuinely matters here! :)',
+      'Great that you\'re looking into this :) Acme takes wellbeing seriously. The headline benefits are: a ten percent group health insurance discount (optional), up to six free confidential psychologist sessions via the EAP (request via hr@acme.com), a gym discount through FitNL, a preventive health check every two years, and a free workstation assessment if your setup needs looking at. Is there a particular area you\'d like to know more about?',
+      h, 'Is there a particular area of wellbeing support you\'d like to know more about? :)', 'Would you like to know how to access the psychologist sessions?');
+    }
+  ],
+
+  /* ── HR & POLICY ── */
+  'remote work|work from home|home working|wfh|hybrid|telework|working remotely|remote policy|can i work from home|home office|remote days': [
+    function(q,h){ return adapt(q,
+      'Sure! :) You can work from home up to three days a week, as long as it\'s agreed with your manager — most teams sort this out week by week as part of the schedule. You receive £2 per home-working day as a flat allowance. On top of that, Acme will reimburse a proper ergonomic chair (up to £300) and an extra monitor (up to £200) via the HR portal. When you\'re working from home, please always connect via VPN. Have you already got your home setup sorted?',
+      'Great news :) Home working is available up to three days a week by arrangement with your manager. You get a flat £2 daily allowance, and Acme also covers the cost of a proper ergonomic chair (up to £300) and a second screen (up to £200) — both requestable through the HR portal. The one non-negotiable: connect via VPN whenever you\'re accessing company systems from home. Is there something specific about the policy you\'d like to understand?',
+      h, 'Have you already got a home setup sorted, or would you like help with the equipment allowance? :)', 'Is there something specific about the remote working policy you\'d like to understand?');
+    }
+  ],
+  'performance review|appraisal|review|goal setting|annual review|beoordeling': [
+    function(q,h){ return adapt(q,
+      'Great question :) The review cycle runs three times a year. In January or February you and your manager set SMART goals together for the year ahead. There\'s a mid-year check-in in June or July to review progress — this one is purely a conversation, it doesn\'t affect your rating. Then in November or December comes the formal assessment, which feeds into salary decisions and the bonus calculation. Review forms live in the HR portal under My Review. Have you got an upcoming review you\'re preparing for?',
+      'Sure :) There are three structured moments each year: a goal-setting conversation in January or February, a mid-year progress check in June or July, and the formal annual review in November or December. The December one is the one that matters for salary and bonus. Beyond those, Acme really encourages ongoing informal feedback — you don\'t have to wait for the formal cycle to have a development conversation. Can I help you with something specific?',
+      h, 'Have you got an upcoming review you\'re preparing for? I\'m happy to help! :)', 'Do you want to know how the outcome connects to salary increases or the bonus?');
+    }
+  ],
+  'code of conduct|conduct policy|integrity|values|ethics|policy': [
+    function(q,h){ return adapt(q,
+      'Good thinking to check :) The Code of Conduct sets out the standards Acme expects from everyone — honesty, respect, handling confidential information properly, appropriate use of company resources and compliance with the law. You\'ll find it on the intranet under HR Documents → Policy → Code of Conduct. New starters sign it during onboarding and it\'s reviewed every year, with any changes communicated company-wide. Are you trying to understand how it applies to a specific situation?',
+      'Of course :) The Code of Conduct is basically the shared rulebook for how we all work at Acme. It covers integrity, respect for colleagues, confidentiality, appropriate use of resources and staying on the right side of the law. You\'ll find it on the intranet under HR Documents → Policy. You signed it when you joined, and it gets reviewed annually. Can I help you find something specific within it?',
+      h, 'Are you trying to understand how the code applies to a specific situation? I\'m happy to help think it through :)', 'Can I point you anywhere more specific within the policy?');
+    }
+  ],
+  'career|progression|promotion|internal vacancy|internal job|move roles|grow': [
+    function(q,h){ return adapt(q,
+      'Oh, love that you\'re thinking about this! :) Acme actively prioritises internal candidates when roles come up. Internal vacancies go up on the intranet five working days before they\'re advertised externally — so you get a genuine head start. To apply internally you\'ll need to have been in your current role for at least twelve months, have a "meets expectations" rating or better, and let your manager know before you apply. If you\'re keen to grow but there\'s no specific role yet, a career conversation with HR is a brilliant starting point.',
+      'Great that you\'re thinking about your future here :) Internal progression is something Acme genuinely encourages. Vacancies go up on the intranet five days before going external, so you see them first. The main criteria: twelve months in your current role, a decent last review rating, and a conversation with your manager before you apply. If you\'re thinking longer-term without a specific role in mind yet, HR can do a career development conversation with you. Is there a particular direction you\'re interested in?',
+      h, 'Is there a particular direction or type of role you\'re interested in? :)', 'Would you like to know more about the mentoring programme as well?');
+    }
+  ],
+  'training|learning|course|development|education|upskill|budget|learning budget': [
+    function(q,h){ return adapt(q,
+      'Great that you\'re investing in yourself :) Every employee gets £1,500 a year for job-related training — courses, certifications, workshops, whatever is relevant to your role. You can check how much of it you\'ve used in the HR portal under My Learning Budget. The process: talk to your manager first to make sure it fits your development plan, then submit a request via the HR portal with a description of the course and why it\'s relevant. There\'s also a free internal training programme called the Acme Academy on the intranet! What kind of training are you thinking about?',
+      'Oh, brilliant — I love that you\'re looking into this! :) The annual learning budget is £1,500 per person. It covers anything that genuinely develops your skills for the role — formal training, professional certifications, industry events. Check the remaining balance in the HR portal and agree the training with your manager before submitting the request. If you need something that costs more, that can go through as a bespoke request, though there\'s a repayment clause for the first two years. Anything specific in mind?',
+      h, 'Do you have something specific in mind you\'re hoping to do? :)', 'Would you like to know how to submit the request in the portal?');
+    }
+  ],
+  'personal development|pdp|development plan|personal plan': [
+    function(q,h){ return adapt(q,
+      'Really glad you\'re thinking about this :) A Personal Development Plan is a structured document you build with your manager to map out the skills you want to develop and how you\'ll get there — it\'s genuinely useful, especially if you\'re thinking about growing into a different role. You set it up through the HR portal, review it at least twice a year, and HR can help if you\'re not sure where to start. Just reach out to hr@acme.com and they\'ll point you in the right direction. Have you had a PDP conversation with your manager before?',
+      'Great initiative! :) A PDP is basically your personal roadmap for growth at Acme. You and your manager agree on what you want to develop and how the company can support that. It lives in the HR portal and you revisit it at least twice a year to check in on progress. It\'s not compulsory, but employees who use them tend to find review conversations a lot more productive :) Is there a particular skill or area you\'re thinking about focusing on?',
+      h, 'Is there a particular skill or area you\'re thinking about focusing on? :)', 'Have you had a PDP conversation with your manager before?');
+    }
+  ],
+  'handbook|employee handbook|policies|where can i find|documentation': [
+    function(q,h){ return adapt(q,
+      'Of course :) The employee handbook is your go-to reference for everything about working at Acme — it covers leave, expenses, the code of conduct, IT policy, health and safety, and the complaints procedure, among other things. You\'ll find it on the intranet under HR Documents → Employee Handbook. New joiners receive it via the onboarding portal. Is there a particular policy area you\'re trying to find?',
+      'Sure thing :) Everything you\'d want to know about Acme\'s policies lives in the employee handbook on the intranet under HR Documents → Employee Handbook. It covers things like leave entitlements, expenses, conduct, IT security, health and safety, and how to raise a grievance. If you started recently, you\'ll also have received it as part of your onboarding. Can I help you find a specific section?',
+      h, 'Is there a particular policy area you\'re looking for? :)', 'Can I help you find a specific section?');
+    }
+  ],
+  'social media|linkedin|twitter|instagram|online|post about work': [
+    function(q,h){ return adapt(q,
+      'Good question :) There\'s nothing stopping you from talking about your work on social media, but a few ground rules apply. Always make clear that your posts represent your own personal views, not Acme\'s. Don\'t share anything confidential — client information, financial details, internal plans. And if you see criticism of Acme online, please don\'t engage with it directly — refer it to the Communications team. The full social media policy is on the intranet under HR Documents → Policy. Is there a specific situation you\'re trying to navigate?',
+      'Acme actually encourages people to be ambassadors on social media — it\'s great for the brand :) Just a few things to keep in mind: be clear your views are personal, don\'t share anything confidential or client-related, and don\'t use company materials without Marketing\'s sign-off. If something critical about Acme appears online, leave it to Communications to handle. The full policy is on the intranet under HR Documents → Policy. Anything specific you\'re wondering about?',
+      h, 'Is there a specific situation you\'re trying to navigate? :)', 'Would you like me to point you to where the full policy lives?');
+    }
+  ],
+  'business travel|travel policy|flights|hotel|per diem|expenses travel': [
+    function(q,h){ return adapt(q,
+      'Of course :) All business travel needs your manager\'s approval upfront — and Finance approval too if the total is over £500. Book everything through the company travel portal, since that\'s how you\'re covered under travel insurance. Allowances: £35 per full travel day, £17.50 for a half-day, hotel up to £150 per night in the UK or £200 abroad, and economy flights for anything under six hours (business class requires explicit approval for longer hauls). Keep all your receipts and claim within 30 days. Is there a specific trip I can help you with?',
+      'Sure! :) Business travel needs prior manager approval — or Finance approval for anything over £500. Always book through the company travel portal to keep your insurance coverage. Allowances: £35 daily (full day), £17.50 half-day, hotels up to £150 in the UK and £200 internationally, economy flights under six hours. Keep all receipts and claim within 30 days. Let me know if you have any questions about a specific trip!',
+      h, 'Is this for a specific trip you\'re planning? I\'m happy to help you think it through :)', 'Do you need to know how to access the travel portal?');
+    }
+  ],
+
+  /* ── ONBOARDING ── */
+  'first day|before i start|new starter|start date|joining|onboarding': [
+    function(q,h){ return adapt(q,
+      'Oh, how exciting — welcome to Acme! :) Before your first day you\'ll receive a personal onboarding link by email — please fill everything in before you arrive rather than on the day, as it keeps your first payroll on time. You\'ll need to submit a copy of your photo ID, the tax starter checklist, your bank details, and an emergency contact. On the day itself your access badge and laptop will be waiting at reception, and your manager will be in touch beforehand about arrival time. You\'ll be well looked after! :)',
+      'Welcome! :) There are a few things to sort before day one: complete the digital forms that come with your onboarding link — ID, tax form, bank details, emergency contact. Doing them early means your first payslip won\'t be delayed. On the day itself, badge and laptop are at reception. Your manager will reach out to confirm when and where to come. It\'s normal to feel a bit nervous, but I can tell you — everyone\'s really friendly here :)',
+      h, 'Is there anything specific about the first-day process you\'d like to know? :)', 'Do you want to know what the first few weeks of the onboarding programme look like?');
+    }
+  ],
+  'onboarding programme|induction|first weeks|probation|settling in': [
+    function(q,h){ return adapt(q,
+      'Great question :) The onboarding programme at Acme runs across your first three months. Week one is all about getting oriented — meeting the team, getting everything set up, a tour of the office, and intro meetings with HR and your manager. Weeks two to four bring role-specific training and introductions to other departments. From month two you\'ll be working more independently, and at the end of month three there\'s a probationary review — it\'s a genuine two-way conversation, not just an assessment! All your tasks are in the HR portal under My Onboarding. How is it going so far? :)',
+      'Welcome! :) Acme\'s onboarding programme is built around the "5 C\'s" — Compliance, Clarification, Culture, Connection, and Confidence — spread across three months. Week one is orientation and access. Weeks two to four are training and getting to know the business. By months two and three you\'re doing the real job, and the probationary review at end of month three is a genuinely supportive conversation. Is there a particular part of the onboarding process I can help you with?',
+      h, 'How is everything going so far? :) Is there anything I can help you find or navigate?', 'Is there a particular part of the onboarding process you\'re trying to navigate?');
+    }
+  ],
+  'system access|get access to systems|login|account|credentials|it access|cannot access|get access': [
+    function(q,h){ return adapt(q,
+      'Sure, happy to help! :) On your first day IT will email you your Acme login credentials, which give you access to email, the intranet, Microsoft 365, and the HR portal. For systems that need elevated permissions — like the CRM or finance tools — your manager needs to request access before your start date. Three things to tick off on day one: change your temporary password, set up 2FA, and install the VPN client. If anything isn\'t accessible, the IT helpdesk on ext. 2200 is the quickest fix. Is there a specific system you\'re having trouble with?',
+      'Of course :) Your Acme account is basically your single key to most systems — you\'ll receive it from IT on day one. It covers email, the intranet, Microsoft 365, and the HR portal. Anything more sensitive needs to be requested by your manager ahead of your start. When you log in for the first time, change the temporary password straight away, set up 2FA, and grab the VPN client from the IT portal. Anything specific giving you trouble?',
+      h, 'Is there a specific system you\'re having trouble accessing? :)', 'Do you want a quick walkthrough of how to set up 2FA?');
+    }
+  ],
+
+  /* ── IT & SYSTEMS ── */
+  'password|reset|forgotten password|locked out|cannot log in|forgot password|password requirements|password rules|password characters|change password|locked account|account locked': [
+    function(q,h){ return adapt(q,
+      '<p>There are two ways to reset your password:</p><ol><li><strong>Self-service (preferred):</strong> Go to <strong>portal.acme.com/password</strong> and click "Forgot password". You will receive a reset link to the personal email address you provided when you joined. Follow the steps to set a new, strong password.</li><li><strong>Via the IT helpdesk:</strong> If self-service doesn\'t work, call the IT helpdesk at ext. <strong>2200</strong> (Mon–Fri, 8:00 am–6:00 pm) or email it@acme.com. Your identity will be verified over the phone via a security question.</li></ol><p>Acme\'s password requirements: at least 12 characters, combining upper and lower case letters, numbers, and symbols. Reuse of your last 10 passwords is not permitted. Passwords expire automatically after <strong>90 days</strong> — you will receive reminders 7 and 3 days in advance.</p>',
+      '<p>There are two ways to reset your password:</p><ol><li><strong>Self-service (preferred):</strong> Go to <strong>portal.acme.com/password</strong> and click "Forgot password". You will receive a reset link to the personal email address you provided when you joined. Follow the steps to set a new, strong password.</li><li><strong>Via the IT helpdesk:</strong> If self-service doesn\'t work, call the IT helpdesk at ext. <strong>2200</strong> (Mon–Fri, 8:00 am–6:00 pm) or email it@acme.com. Your identity will be verified over the phone via a security question.</li></ol><p>Acme\'s password requirements: at least 12 characters, combining upper and lower case letters, numbers, and symbols. Reuse of your last 10 passwords is not permitted. Passwords expire automatically after <strong>90 days</strong> — you will receive reminders 7 and 3 days in advance.</p>',
+      h, 'Is the self-service option working for you, or do you need to contact IT?', 'Is there anything else I can help you with?');
+    }
+  ],
+  'two factor|two-factor|2fa|authenticator|mfa|multi factor authentication|set up two factor|set up 2fa': [
+    function(q,h){ return adapt(q,
+      'Great idea to get this set up — it really does make your account a lot more secure :) Setting up 2FA takes about two minutes. Go to the IT portal, click on Security, then Set up 2FA. Download the Microsoft Authenticator app on your phone and scan the QR code that appears on screen. Every time you log in from outside the office you\'ll be asked for a six-digit code from the app, which refreshes every thirty seconds. If you ever lose your phone, contact IT immediately on ext. 2200. Is the setup going ok?',
+      'Good thinking :) 2FA is mandatory whenever you\'re logging in from outside the office network, so worth getting sorted early. IT portal → Security → Set up 2FA is the route. Download Microsoft Authenticator, scan the QR code shown in the portal, enter the confirmation code, and you\'re done! Codes are valid for thirty seconds. Lose your phone? Contact IT straight away so they can reset it. Any questions about the setup?',
+      h, 'Are you setting this up for the first time, or troubleshooting an existing setup? :)', 'Any other IT questions I can help with?');
+    }
+  ],
+  'phishing|suspicious email|spam|scam|clicked a link|report email|weird email|strange email|dodgy email|clicked on a link|opened a link|i clicked|suspect email|malicious email|i think i got hacked': [
+    function(q,h){ return adapt(q,
+      'Oh, good on you for flagging this — really important! :) The golden rule is: don\'t click anything — not links, not attachments. Use the Report Phishing button in Outlook (top-right of the ribbon) which forwards it to the security team and removes it from your inbox. If you can\'t find the button, forward it as an attachment to security@acme.com. If you\'ve already clicked something — don\'t panic! Disconnect from the internet immediately, call IT on ext. 2200, and change your password from a different device. You won\'t be in trouble for reporting at all — it\'s always the right thing to do! :)',
+      'Good instinct to check! :) The key thing with a suspicious email is: don\'t click anything. Use the Report Phishing button in Outlook or forward it as an attachment to security@acme.com. Accidentally clicked something already? Disconnect from the internet right now, call IT on ext. 2200, and reset your password from another device. The sooner IT knows, the better. And just so you know — you\'ll never be penalised for reporting something that turns out to be fine. Is there a specific email you\'ve received that you\'re unsure about?',
+      h, 'Is there a specific email you\'ve received that you\'re unsure about? :)', 'Has anything already been clicked, or did you catch it in time?');
+    }
+  ],
+  'vpn|cisco|connect from home|remote access|secure connection': [
+    function(q,h){ return adapt(q,
+      'Sure :) The VPN creates a secure connection between you and the Acme network whenever you\'re outside the office. You need it any time you\'re accessing company systems from home or anywhere else. Download Cisco AnyConnect from the IT portal under Downloads, enter vpn.acme.com as the server address, and log in with your Acme account and 2FA code. You\'re connected when you see the green padlock :) If it\'s not connecting, restart the app and check your internet — and if that doesn\'t fix it, IT helpdesk on ext. 2200. Is this your first time setting it up?',
+      'Of course :) Cisco AnyConnect is the VPN client — grab it from the IT portal under Downloads. Server address is vpn.acme.com. Log in with your Acme credentials plus the 2FA code, and you\'ll see a green padlock icon when you\'re connected. Use it every time you\'re outside the office and accessing anything on the Acme network. Having trouble connecting?',
+      h, 'Is this your first time setting it up, or are you troubleshooting an existing install? :)', 'Is there something specific you\'re trying to access from home?');
+    }
+  ],
+  'stolen|lost laptop|missing device|laptop stolen|device gone|laptop lost|someone stole|my laptop|computer stolen|phone stolen|device stolen|lost my laptop|laptop missing': [
+    function(q,h){ return adapt(q,
+      'Oh no — I\'m sorry to hear that, how stressful! :( The most important thing right now is to call IT immediately on ext. 2200. That number is manned around the clock precisely for situations like this. IT can remotely lock and wipe the device before anyone accesses your data — which is why speed really matters here. Once you\'ve called IT: report it to the police and get the crime reference number, then send that to it@acme.com and your manager. HR and Legal will handle any statutory reporting from there. Have you called IT yet?',
+      'Oh that\'s stressful — let\'s sort this quickly :) Call IT on ext. 2200 right now — they\'re available 24/7 for security emergencies and can wipe the device remotely before any data is compromised. That\'s the most urgent step. After that: report to the police (get the crime reference number), and email that to it@acme.com and your manager. HR and Legal will take care of any ICO notifications if needed. Please don\'t hesitate — every minute counts here!',
+      h, 'Have you already called IT, or is that still to do? :)', 'Do you need the IT helpdesk number again?');
+    }
+  ],
+  'software|install|application|app|program|approved software': [
+    function(q,h){ return adapt(q,
+      'Good question :) There\'s an approved software list in the IT portal — anything on it you can install yourself without asking anyone. For anything not on the list, submit a request through the IT portal and it\'ll be reviewed within one to two working days. Installing non-approved software without going through that process is a policy breach, so it\'s worth checking first even if it seems harmless. Is there a specific piece of software you\'re trying to get access to?',
+      'Sure :) The IT portal has an approved software list — self-install anything on it freely. For software that isn\'t on the list, there\'s a request form in the portal and turnaround is usually one to two working days. The reason for the process is security rather than bureaucracy — unapproved software can introduce vulnerabilities. Is there something specific you\'re looking to install?',
+      h, 'Is there a specific piece of software you\'re trying to get access to? :)', 'Do you want me to point you to where the approved list lives?');
+    }
+  ],
+  'hardware|equipment|laptop|monitor|keyboard|new device|request equipment': [
+    function(q,h){ return adapt(q,
+      'Sure :) Submit a hardware request through the IT portal under Hardware Requests, explain what you need and why, and your manager will be asked to approve it. Standard turnaround once approved is five to ten working days. If it\'s urgent — for example you have no working machine at all — contact the IT helpdesk directly on ext. 2200 rather than going through the portal. What kind of equipment are you looking for?',
+      'Of course :) The IT portal under Hardware Requests is where you\'d raise this. Your manager gets notified to approve, and once that\'s done it typically takes five to ten working days to arrive. For genuine emergencies where you can\'t work, call IT on ext. 2200 directly — they can fast-track things. What are you hoping to get?',
+      h, 'What kind of equipment are you looking to request? :)', 'Is this a routine request or something more urgent?');
+    }
+  ],
+
+  /* ── SALES & MARKETING ── */
+  'product info|product information|product spec|datasheet|product library|roadmap': [
+    function(q,h){ return adapt(q,
+      'Great — the Sales portal is your best friend here :) Everything you\'d want to take into a client meeting lives in the Product Library at sales.acme.com. You\'ll find datasheets, technical specs, industry use cases, and the client-shareable version of the product roadmap. Always make sure you\'re using the current version — older ones are flagged with a yellow banner. If you ever can\'t find what you need, productmarketing@acme.com usually gets back really quickly. What are you preparing for?',
+      'Sure :) The Sales portal Product Library is your single source of truth for anything product-related. It\'s organised by product line and covers datasheets, technical specs, use cases by sector, and roadmap highlights. Outdated versions get a yellow banner, so watch out for those! Is there a specific product or feature you\'re trying to find materials for?',
+      h, 'Is there a specific product or feature you\'re trying to find materials for? :)', 'Are you preparing for a particular type of client conversation?');
+    }
+  ],
+  'discount|pricing|price|deal|negotiation|how much can i discount': [
+    function(q,h){ return adapt(q,
+      'Good that you\'re checking before committing to anything :) The discount tiers are: up to ten percent is yours to offer independently — no sign-off needed. Between ten and twenty percent you need written approval from the Sales Manager — a quick email with the deal context is enough. Above twenty percent it goes to the Commercial Director and Finance, and they\'ll want a business case. Whatever the level, always log the approval in Salesforce against the opportunity. Is this for a specific deal you\'re working on?',
+      'Smart to check :) Discount authority sits at three levels. You can move up to ten percent yourself. Ten to twenty percent needs the Sales Manager\'s written go-ahead. Above twenty percent is a Commercial Director and Finance decision, with a proper business case. All approvals must go in Salesforce. Creative workarounds like free extras without sign-off are treated the same as unauthorised discounts — worth knowing! Is this for a specific deal?',
+      h, 'Is this for a specific deal you\'re working on? :)', 'Do you want to know how to build the business case for a larger discount?');
+    }
+  ],
+  'crm|salesforce|customer data|log call|opportunity|pipeline': [
+    function(q,h){ return adapt(q,
+      'Sure :) Salesforce is the single record of truth for everything client-related. Log all interactions — calls, emails, meetings — within 24 hours as activities. Keep your opportunities current with realistic close dates, the right stage, and an expected value. When deals fall through, close them with a loss reason rather than leaving them open — the win/loss data feeds directly into forecasting. Training materials are on the IT portal and via Salesforce Trailhead. Any specific questions about Salesforce?',
+      'Of course :) Everything client-related lives in Salesforce — it\'s not optional, it\'s the basis for forecasts, coaching and management decisions. Log every interaction within 24 hours, keep your pipeline stages and close dates accurate, and close lost opportunities with a reason so the data stays clean. Trailhead is great for self-paced learning if you want to build your skills. Is there a specific part of Salesforce you\'re finding tricky?',
+      h, 'Is there a specific part of Salesforce you\'re finding tricky? :)', 'Are you having a technical issue or is it more about the process?');
+    }
+  ],
+  'battlecard|competitor|competitive|competition|win against|versus': [
+    function(q,h){ return adapt(q,
+      'Great timing :) Battlecards are in the Sales portal under Competitive Intelligence. They\'re updated every month by Product Marketing and give you head-to-head comparisons plus recommended responses to the objections you\'re most likely to hear. Always check the "last updated" date before a meeting — if a competitor has just made a big move, email productmarketing@acme.com and they can get you interim guidance within 24 hours. Which competitor are you going up against?',
+      'Sure :) The battlecards live in the Sales portal, Competitive Intelligence section. Monthly updates from Product Marketing keep them current — each card covers key comparison points and gives you scripted responses to common objections. If something feels out of date before a meeting, reach out to Product Marketing directly — they\'re usually really responsive :) Are you preparing for a specific pitch?',
+      h, 'Which competitor are you going up against? :)', 'Are you preparing for a specific pitch?');
+    }
+  ],
+  'roi|return on investment|value|business case|justify': [
+    function(q,h){ return adapt(q,
+      'Great — the Sales portal has an ROI calculator built for exactly this :) Input the client\'s current costs in the area your solution addresses, and it outputs the expected return and payback period automatically. From there, export the results to the PowerPoint template in the same portal and customise it for the client. Always have the Sales Manager review the numbers before you present them — a second pair of eyes on ROI figures is really good practice. What kind of value are you trying to demonstrate?',
+      'Sure :) There\'s a purpose-built ROI calculator in the Sales portal. Gather the client\'s numbers — what they currently spend or lose in the problem area — plug them in, and the tool does the calculation. The output goes into a PowerPoint template, which you then customise. Before presenting, get the Sales Manager to check the logic. For complicated multi-year scenarios, loop in Presales — they love this stuff :) Is it for a specific deal?',
+      h, 'What kind of value are you trying to demonstrate for this client? :)', 'Is it for a specific deal, or are you building a general template?');
+    }
+  ],
+
+  /* ── OPERATIONS ── */
+  'opening procedure|daily procedure|morning|start of day|checklist|system status|red status|amber status|status dashboard|operations dashboard': [
+    function(q,h){ return adapt(q,
+      'Sure :) The opening routine runs from eight until nine. Check the Operations Dashboard first — everything green, great, proceed; any amber or red statuses need to go straight to IT. Then review overnight tickets, check whether there\'s any planned maintenance that will affect the day, and post a brief status update in the Operations Teams channel. The full daily checklist is in the Operations portal under Procedures. Is there a specific step you\'re unsure about?',
+      'Of course :) The key steps are: (1) system status check via the Operations Dashboard — anything not green goes straight to IT; (2) review overnight tickets; (3) check the maintenance schedule for the day; (4) post your morning update in Teams. The closing routine mirrors this — process outstanding orders, log unresolved tickets, send your end-of-day report, lock the workstation. The full checklist is in the Operations portal :)',
+      h, 'Are you looking for the full checklist, or is there a specific step you\'re unclear on? :)', 'Is there a system status issue you\'re dealing with right now?');
+    }
+  ],
+  'order|customer order|process order|order workflow': [
+    function(q,h){ return adapt(q,
+      'Happy to help :) The order workflow has seven steps and is fixed — deviating from it needs team leader sign-off. Step one: send the acknowledgement to the customer within an hour. Two: enter the full order into the ERP — check names and codes carefully! Three: verify stock. Four: confirm a realistic delivery date. Five: hand off to logistics via the Orders portal. Six: share tracking details once shipped. Seven: verify the invoice. Is there a particular step you\'re getting stuck on?',
+      'Sure :) Seven steps, and they\'re all there for a reason. Acknowledge receipt within the hour, enter it fully and accurately in the ERP, check stock, give the customer a realistic delivery date (no overpromising!), hand off to logistics through the portal, share the tracking reference once dispatched, and verify the invoice. Skipping or reordering steps needs a team leader to sign off. Any specific step I can help you with?',
+      h, 'Is there a particular step you\'re getting stuck on? :)', 'Are you troubleshooting a specific order issue?');
+    }
+  ],
+  'weekly report|report|friday|operations report|submit report': [
+    function(q,h){ return adapt(q,
+      'Sure :) Weekly reports are due every Friday before four in the afternoon, submitted through the Operations portal using the standard template. The report should cover: orders processed (successful, failed, or pending), open and resolved tickets, any incidents, team capacity, and any bottlenecks worth flagging. Send it to your manager and copy finance@acme.com. If you\'re going to be late, flag it to your manager in advance rather than just submitting late. Is there something specific about the format I can help with?',
+      'Of course :) Every Friday before 4 pm via the Operations portal — that\'s the standing requirement. Use the standard template (Templates → Weekly Report in the portal). Include: order volumes by outcome, ticket status, incidents, capacity, and anything systemic you\'ve noticed. Copy goes to your manager and finance@acme.com. Habitual late submissions do come up in performance conversations, so better to give a heads-up if you\'re going to miss it! :)',
+      h, 'Is there something specific about the report format or content you\'re unsure about? :)', 'Are you looking for the template, or is it a submission issue?');
+    }
+  ],
+  'safety incident|accident|near miss|injury|hazard|health and safety': [
+    function(q,h){ return adapt(q,
+      'I\'m glad you\'re taking this seriously :) Every incident needs to be reported — including near misses where nothing actually went wrong, because those are how you prevent the next one. Tell your manager and the Health and Safety Officer straight away, then complete the incident form in the Operations portal under Safety → Report an Incident. If there\'s any physical injury: call 999 first. Preserve evidence if you can do so safely. The H&S Officer investigates within five working days. Is this about a specific incident?',
+      'Really glad you\'re flagging this :) Near misses are just as important to report as actual accidents — they\'re the warning sign before something more serious happens. Tell your manager and H&S Officer immediately, fill in the incident form in the Operations portal, and preserve any evidence. If someone\'s been hurt: 999 first, everything else second. Serious accidents are reported to the HSE by HR and Legal — you don\'t need to do that yourself. How can I help further?',
+      h, 'Is this about a specific incident, or are you looking to understand the process in advance? :)', 'Do you need the contact details for the Health and Safety Officer?');
+    }
+  ],
+
+  /* ── CONFIDENTIAL SUPPORT ── */
+  'unsafe|feel unsafe|threatened|fear|dangerous|uncomfortable at work|hostile|scared at work|intimidated|i feel scared|i am scared|someone is threatening|i feel threatened|not safe at work': [
+    function(q,h){ return adaptSensitive(q,
+      'I\'m really glad you felt you could share this — that takes courage, and I want you to know you\'re not alone. Feeling unsafe at work is something that always deserves to be taken seriously. The Confidential Support Officer — Sarah de Vries — is the right first port of call. You can reach her on ext. 2250 or at s.devries@acme.com, and everything you discuss is kept strictly confidential. Nothing moves forward without your say-so. If you\'d prefer to speak anonymously, the external line is 0800-2222, free, Monday to Friday 8 am to 6 pm. And if there\'s any immediate danger, please call 999 — that always comes first.',
+      'I\'m so glad you felt safe enough to bring this up here :) You should never have to feel unsafe at work, and Acme takes that seriously. The Confidential Support Officer, Sarah de Vries, is trained exactly for this — you can speak to her completely anonymously if you prefer, via the external line 0800-2222 (free, Monday to Friday 8 am to 6 pm). HR at hr@acme.com is also there for you. And if there\'s any immediate danger at all, please call 999 first.',
+      h);
+    }
+  ],
+  'bully|bullied|excluded|picked on|harassed|singled out|hostile behaviour|being bullied|people are mean|colleague is mean|someone keeps|being treated badly|targeted|victimised|ostracised|spreading rumours about me': [
+    function(q,h){ return adaptSensitive(q,
+      'I\'m really sorry to hear you\'re going through this — that sounds genuinely difficult, and it\'s absolutely right to take it seriously. What you\'re describing — repeated negative behaviour like verbal abuse, exclusion, or belittling — is bullying, and it violates both Acme\'s Code of Conduct and the law. I\'d really encourage you to speak to the Confidential Support Officer: Sarah de Vries on ext. 2250, or the anonymous external line 0800-2222 (free, Monday to Friday). Nothing will happen without your explicit consent, and you won\'t face any negative consequences for raising it.',
+      'That sounds really hard, and I want you to know you\'re right to do something about it :) Bullying is taken seriously at Acme — it\'s a violation of our Code of Conduct and the law. The Confidential Support Officer — ext. 2250 or anonymously via 0800-2222 — is there to listen first and only act if you decide you want that. HR at hr@acme.com is also available. No one should have to put up with this, and there will be no retaliation for speaking up.',
+      h);
+    }
+  ],
+  'discriminat|unfair treatment|prejudice|racist|sexist|ageist|bias|inequality': [
+    function(q,h){ return adaptSensitive(q,
+      'I\'m really sorry you\'re having to deal with this — that sounds exhausting and unfair. Discrimination based on any protected characteristic — race, gender, age, sexual orientation, disability, religion and others — is unlawful under the Equality Act 2010, and it\'s simply not tolerated at Acme. I\'d encourage you to speak with the Confidential Support Officer confidentially (ext. 2250 or anonymous external line 0800-2222). If you\'d prefer to go completely outside Acme, the Equality and Human Rights Commission at equalityhumanrights.com is free, independent, and totally confidential.',
+      'I\'m so sorry you\'re dealing with this :( Discrimination on any protected ground is unlawful and completely contrary to Acme\'s values. You deserve to be treated fairly and with respect. At Acme, the Confidential Support Officer (ext. 2250 or 0800-2222 anonymously) is a really good first conversation — no pressure to do anything until you\'re ready. Externally, the EHRC (equalityhumanrights.com) is independent of Acme entirely. You\'re not on your own with this.',
+      h);
+    }
+  ],
+  'sexual harassment|unwanted contact|inappropriate touching|groping|sexual comments|sexual messages|boundary crossed': [
+    function(q,h){ return adaptSensitive(q,
+      'I hear you — and I want you to know this is being taken seriously. What you\'re describing is sexual harassment, and it\'s unlawful under the Equality Act 2010. You don\'t have to prove anything to reach out for support right now, and you absolutely don\'t have to handle this alone. The Confidential Support Officer is on ext. 2250, or anonymously on 0800-2222 (Monday to Friday). If you want completely independent external support, Rape Crisis England and Wales is available 24/7 on 0808 802 9999 — free and confidential for any unwanted sexual behaviour. If there\'s any immediate danger, please call 999.',
+      'I\'m really glad you reached out :) What you\'ve shared is serious and it matters. Sexual harassment — whether unwanted contact, comments, messages, or pressure — is unlawful and Acme is required to investigate it seriously. Please contact the Confidential Support Officer (ext. 2250, or anonymously 0800-2222) or HR. Rape Crisis is also available 24/7 on 0808 802 9999 if you\'d like to speak to someone entirely outside of Acme. You don\'t have to deal with this alone — there are people here who genuinely want to help.',
+      h);
+    }
+  ],
+  'formal complaint|grievance|raise complaint|file complaint|submit complaint': [
+    function(q,h){ return adapt(q,
+      'I\'m really glad you\'re taking this step :) You have every right to raise a formal complaint and Acme is legally required to handle it seriously. The steps are: speak to the Confidential Support Officer first if you\'d like support in preparing what to say; submit your complaint in writing to HR at hr@acme.com or through the HR portal; you\'ll receive written acknowledgement within three working days; the investigation involves hearing both sides and runs for a maximum of ten working days; and you\'ll receive the outcome in writing. You\'re protected from retaliation — that\'s guaranteed.',
+      'Good for you for taking this seriously :) Filing a formal complaint is your right, and Acme\'s process is designed to be fair. The Confidential Support Officer can help you frame your complaint — that\'s worth doing first. Send it in writing to hr@acme.com or via the HR portal. Acknowledgement within three days, investigation up to ten working days, outcome communicated in writing. Retaliation after a complaint is itself treated as a serious violation. Would you like to know more about what happens next?',
+      h, 'Would it help to know what your rights are during the investigation process?', 'Do you want to know more about what happens after you submit?');
+    }
+  ],
+  'anonymous|report anonymously|no one can know|confidential|secret|no name': [
+    function(q,h){ return adapt(q,
+      'Yes, absolutely :) The external Confidential Support Officer line — 0800-2222, free, Monday to Friday 8 am to 6 pm — lets you speak without giving your name, job title, or even which department you work in. The person on the other end is bound by a professional duty of confidentiality. Nothing is shared and no action is taken unless you explicitly decide you want that. You can also contact the Support Officer internally and the same rules apply. Is there something you\'ve been weighing up whether to raise?',
+      'Completely :) You can speak to the external Confidential Support Officer on 0800-2222 without identifying yourself at all. The line is free and available Monday to Friday. The Support Officer has a legal duty of confidentiality and will not share what you say or take any action without your express consent — ever. If at any point you decide you want to take things further, that\'s entirely your decision to make in your own time. I hope that gives you some reassurance :)',
+      h, 'Is there something you\'ve been weighing up whether to raise? :)', 'Do you want to know more about what a conversation with the Support Officer actually involves?');
+    }
+  ],
+  'manager|supervisor|boss|line manager|misconduct|manager behaving': [
+    function(q,h){ return adaptSensitive(q,
+      'I really appreciate you sharing this — it\'s especially difficult when the behaviour is coming from someone who has more power than you. But I want you to know: you don\'t have to raise it with them directly at all. There are three other routes entirely outside that reporting line: the Confidential Support Officer (ext. 2250 or anonymously 0800-2222), HR at hr@acme.com, or your manager\'s own line manager. Acme guarantees there will be no adverse consequences for raising a concern — and retaliation is itself treated as a serious policy breach.',
+      'I\'m glad you\'re talking about this :) Reporting behaviour from your own manager is genuinely hard, and Acme\'s process is designed so you don\'t have to go through them. Your options: the Confidential Support Officer (ext. 2250 or the anonymous external line 0800-2222), HR directly at hr@acme.com, or the next level of management above your manager. All of these channels operate independently. You are protected from retaliation — that protection is real and enforceable.',
+      h);
+    }
+  ],
+  'my rights|rights as employee|what rights do i have|protected': [
+    function(q,h){ return adapt(q,
+      'Great that you\'re asking about this :) When you raise a complaint at Acme, you have six guaranteed rights: a fair and impartial investigation; privacy and GDPR-compliant handling of your information; the right to bring the Confidential Support Officer or a trade union rep to any formal meetings; regular updates and a written outcome; full protection against retaliation; and the right to appeal if you disagree with the outcome. These rights are set out in the Equality Act 2010, the ACAS Code of Practice, and Acme\'s own Complaints Policy. Is there a specific right you\'d like me to expand on?',
+      'Really glad you\'re looking into this :) Your rights when making a complaint are solid. They cover: an impartial investigator, confidential processing of your data, support throughout from the Confidential Support Officer or a union rep, information about how the process is progressing, guaranteed protection from any negative consequences, and an appeal route. These are legal protections, not just internal policy — you can hold Acme to them. Is there a specific right you\'d like to know more about?',
+      h, 'Is there a specific right you\'d like me to expand on? :)', 'Are you at the stage of thinking about making a formal complaint?');
+    }
+  ],
+  'external help|outside acme|independent|acas|ehrc|citizens advice|victim support': [
+    function(q,h){ return adapt(q,
+      'Good that you know you have options outside Acme too :) You don\'t have to go through internal channels first — external help is always available. The main organisations are: ACAS at acas.org.uk or 0300 123 1100 for workplace advice; the EHRC at equalityhumanrights.com for discrimination complaints; Rape Crisis England and Wales on 0808 802 9999 around the clock; Victim Support on 08 08 16 89 111; the HSE at hse.gov.uk for safety breaches; and Citizens Advice at citizensadvice.org.uk for general employment rights. They\'re all free, independent, and confidential. Is there a specific type of support you\'re looking for?',
+      'Really glad you know these options exist :) If you\'d rather go outside Acme first, that\'s completely valid. ACAS (acas.org.uk, 0300 123 1100) is the go-to for workplace disputes. The EHRC handles discrimination independently. Rape Crisis England and Wales is available 24/7 on 0808 802 9999. Victim Support is on 08 08 16 89 111. Citizens Advice covers general employment rights. All free, independent, and confidential. Would you like more detail about any of these?',
+      h, 'Is there a specific type of support you\'re looking for? :)', 'Would you like more detail about any of these organisations?');
+    }
+  ],
+
+  /* ── NEW: SITUATION / INTENT CLUSTERS ──
+     These catch natural "situation" phrases that span multiple topics.
+     The chatbot recognises the scenario, gives a modular response, and
+     surfaces the right follow-up branches automatically.
+  */
+
+  /* SCENARIO: "I just started / I am new" */
+  'i just started|i am new|just joined|new employee|brand new|first week|started this week|just started working': [
+    function(q,h){ return adapt(q,
+      'Welcome aboard — I\'m so glad you found your way here! :) Let me give you a quick map of what\'s most useful in your first week. The main things to tick off are: (1) complete your onboarding forms in the HR portal under My Onboarding before anything else — that keeps your first payslip on time; (2) change your temporary password and set up 2FA on day one; (3) connect via VPN whenever you\'re off-site; and (4) find your employee handbook on the intranet under HR Documents. Your manager will walk you through a lot of this too, but I\'m here for anything that comes up along the way. What\'s the first thing I can help you with?',
+      'Welcome! :) Starting somewhere new always comes with a lot of questions at once — that\'s totally normal. The four most common first-week things people ask me about are: onboarding forms (HR portal → My Onboarding), system access and 2FA setup (IT portal → Security), leave entitlements (HR portal → My Leave), and where to find policies (intranet → HR Documents → Employee Handbook). Which of those would be most useful to dig into first?',
+      h, 'Is there a specific first-week task I can help you get through? :)', 'Would you like a quick overview of the HR portal — it\'s where most things live?');
+    }
+  ],
+
+  /* SCENARIO: "I want to take time off / I need a break" */
+  'i want to take time off|i need a break|planning a holiday|thinking about time off|want some time off|need some leave|going on holiday': [
+    function(q,h){ return adapt(q,
+      'Oh, good — everyone deserves a proper break! :) Quick overview: you have 25 days a year if you\'re full-time (pro-rata for part-time), and you can carry up to 10 unused days into the next year. To book leave, go to the HR portal → My Leave, pick your dates, and submit — your manager gets notified and has five working days to respond. General rule of thumb: four weeks\' notice for a week or two off, eight weeks for anything longer. Is it a specific trip you\'re planning, or are you checking your balance first?',
+      'Great — let\'s make that happen! :) You get 25 days of annual leave a year, check your live balance any time in the HR portal under My Leave. The booking process is straightforward: select dates, submit, and your manager gets an automatic notification. They have five working days to approve or decline. For busier periods like summer, earlier is definitely better since team capacity fills up. Shall I walk you through how to submit the request?',
+      h, 'Is it a specific date range you\'re working with? :)', 'Do you want me to explain what happens if your request is declined?');
+    }
+  ],
+
+  /* SCENARIO: "I am stressed / I am struggling / mental health" */
+  'i am stressed|feeling stressed|really struggling|overwhelmed|burned out|burnout|mentally exhausted|not coping|struggling at work|i need help|anxiety at work|mental health|feeling anxious|feeling depressed|very stressed': [
+    function(q,h){ return adaptSensitive(q,
+      'I\'m really glad you felt you could say that — it takes something to admit when things feel hard :) You\'re not alone, and Acme genuinely has support in place for exactly this. The Employee Assistance Programme gives you up to six free, fully confidential sessions with a qualified psychologist — no one at Acme sees the details, and you just request it through hr@acme.com. There\'s no judgment attached to using it. If you feel your workload itself is the issue, a conversation with your manager or HR at hr@acme.com is the right starting point. And if it ever feels more serious than stress — please also know the Confidential Support Officer is on ext. 2250 and is trained to help with anything that\'s affecting your wellbeing at work. What would feel most useful right now?',
+      'Thank you for sharing that — really. Feeling overwhelmed at work is more common than people think, and it\'s not something you should just push through alone :) The most immediate support available to you is the Employee Assistance Programme: up to six free sessions with a qualified psychologist, completely confidential — request it at hr@acme.com. If the pressure is coming from a specific situation at work, talking to HR or the Confidential Support Officer (ext. 2250) is a good first move. What\'s weighing on you most right now, if you feel ok to share?',
+      h);
+    }
+  ],
+
+  /* SCENARIO: "I have an IT problem / something is broken" */
+  'it problem|computer problem|laptop not working|system down|something is broken|technical issue|computer crashed|not working|system issue|it issue|tech problem|pc problem|screen broken|laptop broken': [
+    function(q,h){ return adapt(q,
+      'Oh no, that\'s frustrating — let\'s get it sorted :) First thing: can you still work on another device, or are you completely blocked? If it\'s a critical blocker, call IT directly on ext. 2200 — they\'re available Monday to Friday and can often fix things remotely. For non-urgent issues, raise a ticket through the IT portal. A few things I can help with right now: password resets, VPN issues, 2FA setup, phishing emails, or software installation requests. Which of those fits what you\'re dealing with?',
+      'Annoying when tech doesn\'t cooperate! :) The quickest fix for most things is the IT helpdesk on ext. 2200 or it@acme.com. For urgent issues — no machine, account locked, possible security incident — call rather than emailing. The IT portal also has a ticketing system for non-urgent requests. Tell me a bit more about what\'s happening and I\'ll point you to the right place!',
+      h, 'What exactly is happening — is it an account issue, a hardware problem, or something else? :)', 'Is this urgent and blocking your work, or something that can wait for a ticket?');
+    }
+  ],
+
+  /* SCENARIO: "Something happened at work / I want to report something" */
+  'something happened|want to report|need to report|report something|an incident happened|incident at work|something went wrong|i witnessed|not sure if i should report|happened to me at work': [
+    function(q,h){ return adapt(q,
+      'I\'m glad you reached out :) Before we go further — can you tell me a little more about what happened? That helps me point you to exactly the right channel. A few situations I can help navigate: workplace safety incidents or near misses (Operations portal → Safety), concerns about bullying or harassment (Confidential Support Officer, ext. 2250), something involving your own mental health or wellbeing (HR → Employee Assistance Programme), IT security incidents like phishing or a lost device (IT helpdesk ext. 2200). Which of those sounds closest to your situation?',
+      'Of course — reporting something when it matters is the right thing to do, whatever it is :) I want to make sure you get to the right place. Is this related to a physical safety incident, an interpersonal situation with a colleague or manager, an IT or data security issue, or something else? Once I know a bit more, I can walk you through exactly what to do next.',
+      h, 'What\'s the nature of what happened? :) I\'ll help you figure out the right route.', 'Is there any urgency to this — do you need help right now, or are you planning what to do next?');
+    }
+  ],
+
+  /* SCENARIO: Multi-step journey — STOLEN / LOST LAPTOP */
+  'what do i do if laptop stolen|laptop was stolen|my device was stolen|laptop theft|steps for stolen laptop|what happens when laptop stolen': [
+    function(q,h){ return adapt(q,
+      'OK — here\'s exactly what to do, step by step :) \n\n<strong>Step 1 — Call IT immediately (ext. 2200 — available 24/7).</strong> This is the most time-sensitive thing. IT will remotely lock and wipe the device so no one can access your data. Speed really matters here.\n\n<strong>Step 2 — Report to the police.</strong> Get the crime reference number — you\'ll need it.\n\n<strong>Step 3 — Email it@acme.com AND your manager</strong> with the crime reference number.\n\n<strong>Step 4 — HR and Legal take over from here.</strong> They\'ll assess whether an ICO notification is required within 72 hours — you don\'t need to do that yourself.\n\n<strong>Step 5 — Request a replacement device</strong> through the IT portal under Hardware Requests once the incident is logged.\n\nHave you called IT yet? That\'s the step where every minute counts.',
+      'Here\'s the five-step process for a stolen device — try to do these in order :)\n\n1️⃣ <strong>Call IT now on ext. 2200</strong> — they\'re available 24/7 for security emergencies and can remotely wipe the device immediately.\n\n2️⃣ <strong>Report to the police</strong> — ask for the crime reference number.\n\n3️⃣ <strong>Send the crime reference to it@acme.com and your manager.</strong>\n\n4️⃣ <strong>HR and Legal handle the ICO notification</strong> if required — that\'s their job, not yours.\n\n5️⃣ <strong>Request a replacement</strong> through the IT portal when you\'re ready.\n\nIs there a specific step I can help you with right now?',
+      h, 'Have you already called IT? That\'s the most urgent step :)', 'Do you need help with the replacement device request once the incident is reported?');
+    }
+  ],
+
+  /* SCENARIO: Multi-step journey — RETURN FROM SICK LEAVE */
+  'coming back from sick leave|returning to work|return to work|back to work after illness|back after being sick|going back to work|fit to return|ready to come back': [
+    function(q,h){ return adapt(q,
+      'Great that you\'re feeling better! :) Here\'s what the return process looks like:\n\n<strong>1. Call your manager before 9 am</strong> on the morning you plan to come back — same way you reported in sick.\n\n<strong>2. Bring your doctor\'s note</strong> on your first day back if you were off for more than five consecutive working days.\n\n<strong>3. Return-to-work conversation.</strong> Your manager will have a brief informal chat — this is supportive, not disciplinary. It\'s just to make sure you\'re ok and don\'t need any adjustments.\n\n<strong>4. If you were off for more than two weeks</strong>, the occupational health advisor may be involved. They\'re there to help plan your return, not to scrutinise your absence.\n\nIs there anything specific about the return process you\'d like to know more about?',
+      'Happy to help you plan your return :) The key steps are:\n\n→ Call your manager before 9 am on your first day back\n→ Doctor\'s note required if you were off five or more consecutive working days\n→ Brief return-to-work chat with your manager — it\'s low-key and supportive\n→ If you were off more than two weeks, occupational health may check in about reasonable adjustments\n\nIs there anything you\'re worried about, or a specific aspect of the return process you\'d like me to explain?',
+      h, 'Is there something specific about the return conversation you\'re unsure about? :)', 'Were you off more than two weeks? That triggers a slightly different process I can walk you through.');
+    }
+  ],
+
+  /* SCENARIO: Multi-step journey — FORMAL COMPLAINT / GRIEVANCE PROCESS */
+  'how to raise a complaint|complaint process|steps for complaint|grievance process|what happens when i complain|file a grievance|submit a grievance|raise a grievance|how does complaint work': [
+    function(q,h){ return adapt(q,
+      'Really good that you\'re looking into this :) Here\'s exactly how Acme\'s formal complaints process works:\n\n<strong>Step 1 — Speak to the Confidential Support Officer first</strong> (ext. 2250 or anonymously on 0800-2222). They\'ll help you frame your complaint clearly and walk you through your rights — no pressure to proceed until you\'re ready.\n\n<strong>Step 2 — Submit in writing</strong> to hr@acme.com or via the HR portal. Be as specific as possible about what happened and when.\n\n<strong>Step 3 — Acknowledgement within 3 working days.</strong> HR will confirm receipt and name the investigator.\n\n<strong>Step 4 — Investigation (up to 10 working days).</strong> Both sides are heard. You can bring the Support Officer or a union rep to any formal meetings.\n\n<strong>Step 5 — Written outcome.</strong> You\'ll receive the decision in writing and have the right to appeal.\n\n<strong>Important:</strong> Retaliation after a complaint is itself a serious policy breach — you are protected throughout. Shall I explain what your rights are during the investigation?',
+      'Good for you — the process is there to protect you :) Here\'s what to expect:\n\n1️⃣ <strong>Start with the Confidential Support Officer</strong> (ext. 2250 / anonymous line 0800-2222) — they help you prepare and support you throughout\n2️⃣ <strong>Submit your complaint in writing</strong> to hr@acme.com — be specific about dates and incidents\n3️⃣ <strong>Acknowledgement within 3 working days</strong>\n4️⃣ <strong>Investigation within 10 working days</strong> — both parties heard, impartial investigator\n5️⃣ <strong>Written decision + right of appeal</strong>\n\nYou\'re protected from retaliation at every step. Would you like to know more about any of these stages?',
+      h, 'Would you like to know what your rights are during the investigation? :)', 'Do you want to know more about anonymous reporting before deciding whether to proceed?');
+    }
+  ],
+
+  /* SCENARIO: "Is this harassment / is this bullying?" — clarification helper */
+  'is this harassment|is this bullying|not sure if this is harassment|counts as harassment|counts as bullying|does this count|am i being bullied|is this discrimination|is what happened to me|wondering if this is': [
+    function(q,h){ return adaptSensitive(q,
+      'That\'s such an important question to ask, and the fact that you\'re asking it suggests something hasn\'t felt right :) Let me give you some clarity.\n\n<strong>Bullying</strong> is repeated negative behaviour — verbal abuse, exclusion, spreading rumours, belittling, or undermining your work. One-off incidents may still be serious, but repetition is typically the defining feature.\n\n<strong>Harassment</strong> under the Equality Act 2010 is unwanted conduct related to a protected characteristic (race, gender, age, disability, religion, sexual orientation, etc.) that violates your dignity or creates a hostile environment.\n\n<strong>Sexual harassment</strong> is any unwanted conduct of a sexual nature — comments, messages, physical contact, or pressure.\n\nYou don\'t need to be completely certain before reaching out. The Confidential Support Officer (ext. 2250 or anonymously on 0800-2222) is specifically trained to help you work through whether what happened qualifies and what your options are — with no pressure to take action until you\'re ready. Would it help to talk through what happened?',
+      'I\'m glad you\'re asking this — it\'s the right instinct :) You don\'t need to have a label for it before you reach out for support. But here\'s a helpful way to think about it:\n\n→ <strong>Bullying:</strong> repeated negative treatment — exclusion, verbal abuse, undermining, or rumour-spreading\n→ <strong>Harassment:</strong> unwanted behaviour linked to who you are (gender, race, age, disability, religion, etc.)\n→ <strong>Sexual harassment:</strong> any unwanted sexual conduct — comments, messages, touching, or pressure\n\nThe Confidential Support Officer is the right person to talk to (ext. 2250 / 0800-2222 anonymously). They can help you figure out what applies and what your options are — nothing moves forward without your consent. You don\'t have to have all the answers before you call.',
+      h);
+    }
+  ],
+
+  /* ── CATCH-ALL ── */
+  '_fallback': [
+    function(q,h){ return fallback(q,h); }
+  ]
+};
+
+/* ------------------------------------------------------------------
+   FOLLOW-UP DETECTION
+   Short or vague messages are treated as follow-ups to the last topic.
+   We classify the follow-up intent, then generate a contextual reply
+   by pulling more detail from the topic's detail map.
+   ------------------------------------------------------------------ */
+
+/* Maps each veraDB key to extra detail answers for common follow-up angles */
+var veraDetail = {
+  'holiday|annual leave|days off|vacation|time off|how many days|how much leave|leave entitlement|how many holidays|days holiday|leave allowance': {
+    'how|request|apply|submit|book': 'To request leave, go to the HR portal and open My Leave. Select your dates, add a note if needed, and submit — your manager gets notified automatically and responds within five working days.',
+    'carry|rollover|next year|january|forfeit|lose': 'You can carry up to 10 unused days into the new year. Anything above that is automatically forfeited on 31 January, so keep an eye on your balance as year-end approaches.',
+    'part.time|pro.rata|hours|contract': 'Part-time employees receive holiday on a pro-rata basis. So if you work 80% of full-time hours, you get 80% of 25 days — which is 20 days per year.',
+    'balance|check|see|view|how many left': 'Your live balance is always visible in the HR portal under My Leave. It updates in real time, so you can check it whenever you like.',
+    'default': 'Is there a specific aspect of holiday entitlement you\'d like me to go into more detail on — requesting leave, checking your balance, or carry-over rules?'
+  },
+  'request leave|book leave|apply for leave|submit leave|take holiday': {
+    'decline|refused|reject|manager said no': 'If your leave is declined, your manager must provide a written explanation. You can discuss alternatives and propose different dates. If you feel the refusal is unreasonable, you can raise it with HR.',
+    'how long|notice|in advance|timing|deadline': 'The notice required depends on how long you want off. For one to two weeks, aim for at least four weeks notice. For anything longer, eight weeks is the expectation. During peak periods like summer, earlier is always better.',
+    'portal|where|how|steps': 'Log into the HR portal, click My Leave in the left menu, select the calendar dates you want, and hit Submit. Your manager receives an automatic notification and you\'ll get an email once they respond.',
+    'default': 'Is it the process you\'re unsure about, the notice periods, or something that happened with a request?'
+  },
+  'sick|illness|unwell|not feeling well|sickness|absent due to illness|call in sick|i am sick|feel sick|i feel ill|report sick|sick today|off sick|what do i do when sick|sick leave|sick note|calling in sick|doctor note|doctors note|need a note|when do i need|off for more than|two weeks sick|long term sick': {
+    'return|come back|fit note|back to work': 'When you\'re ready to return, call your manager before 9 am on the day you\'re coming back — the same way you called in sick. If you\'ve been off more than five days, bring your doctor\'s note in on your first day back.',
+    'long.term|weeks|months|ongoing|chronic': 'For absences longer than two weeks, the occupational health advisor gets involved. They\'re there to support you and advise on reasonable adjustments, not to scrutinise you. HR coordinates this and will keep you informed throughout.',
+    'note|doctor|fit note|gp': 'A doctor\'s note (or "fit note") is required after five consecutive working days of absence. Your GP issues these — you\'d bring or send it to HR. For absences under five days no note is needed.',
+    'pay|sick pay|paid|salary when sick': 'Statutory sick pay applies from day four of absence. Acme may have an enhanced sick pay policy above the statutory minimum — check your contract or ask HR for the details specific to your grade.',
+    'default': 'Is there a specific part of the sickness process you\'d like to know more about — returning to work, doctor\'s notes, or longer-term absence?'
+  },
+  'remote work|work from home|home working|wfh|hybrid|telework|working remotely|remote policy|can i work from home|home office|remote days': {
+    'allowance|money|paid|reimburse|chair|monitor|equipment': 'The flat allowance is £2 per home-working day, paid through payroll. On top of that, Acme reimburses a proper ergonomic chair up to £300 and an extra monitor up to £200 — request both through the HR portal under Remote Work Equipment.',
+    'vpn|internet|security|connection|secure': 'When working from home you must always connect via VPN — that\'s the Cisco AnyConnect client, downloadable from the IT portal. It creates a secure encrypted connection to the Acme network. Never access company systems on a public or unsecured network without it.',
+    'days|how many|three|limit|maximum': 'The maximum is three days per week, agreed with your manager. Most teams plan this in advance on a weekly basis. If your role requires more in-office presence for specific reasons your manager will let you know.',
+    'manager|approval|agree|permission': 'Remote working days need to be agreed with your manager — it\'s not a unilateral choice. Most teams settle into a pattern fairly quickly. If you\'re having difficulty agreeing an arrangement, HR can help facilitate the conversation.',
+    'default': 'Would you like to know more about the equipment allowance, the VPN setup, or how the days are typically arranged with your team?'
+  },
+  'salary|pay|wages|paid|payday|payslip|when do i get paid': {
+    'payslip|slip|where|access|view': 'Payslips are in the HR portal — log in and look under My Payslips. They\'re published on the day your salary is paid and you\'ll get an email notification. You can access historical payslips there too.',
+    'tax|p60|p11d|hmrc|annual statement': 'Your P60 (annual tax statement) is issued by 1 February each year, also accessible in the HR portal. If you need a P11D for benefits in kind, HR can arrange that separately.',
+    'bank|account|change|update|details': 'To change your bank account, email payroll@acme.com or update it in the HR portal at least five working days before the end of the month. Changes after that deadline take effect the following month.',
+    'mistake|wrong|error|incorrect|missing': 'If something looks wrong on your payslip, contact payroll@acme.com straight away with the specific issue. Genuine errors are corrected in the next payroll run, or sooner for significant amounts.',
+    'default': 'Is it your payslip you want to access, a question about a specific deduction, or something else about how your pay works?'
+  },
+  'expense|claim|reimburse|receipt|business cost|declare expenses': {
+    'how long|deadline|30 days|time|when': 'You have 30 days from the date of the expense to submit your claim. Claims submitted after that may be rejected, so it\'s worth doing them promptly rather than letting them accumulate.',
+    'meal|lunch|dinner|food|entertainment': 'Meals during work meetings are reimbursable up to £35 per person including VAT. Personal meals while travelling are covered by the daily allowance rather than as individual expense claims.',
+    'over 500|approval|large|expensive|limit': 'Any single expense line over £500 needs your manager\'s prior approval before you incur the cost — not retrospective sign-off. Get written confirmation from your manager, then attach that to your claim.',
+    'receipt|lost|no receipt|missing receipt': 'Without a receipt the claim generally can\'t be paid. If you\'ve genuinely lost a receipt you can submit a statutory declaration, but this is an exception not a workaround. Finance reviews these case by case.',
+    'default': 'Is there a specific expense you\'re unsure about claiming, or a question about the submission process itself?'
+  },
+  'pension|retirement|contributions|workplace pension': {
+    'how much|amount|rate|percentage|contribution': 'Acme contributes 6% of your qualifying earnings and you contribute 3%, deducted automatically from your monthly salary. Combined that\'s a 9% total contribution going into your pension pot each month.',
+    'opt out|leave|exit|not join|cancel': 'You can opt out of the pension scheme, but you\'d be giving up Acme\'s 6% contribution too — so it\'s worth considering carefully. To opt out, contact Pension Provider XYZ directly. Acme is required to re-enrol you every three years.',
+    'view|balance|check|statement|how much have i got': 'Your pension balance and annual statement are on the Pension Provider XYZ online portal. Log in with the credentials they sent when you were enrolled. Mijnpensioenoverzicht.nl also aggregates all your UK pension pots in one place.',
+    'beneficiary|nominee|who gets it|death|next of kin': 'You can nominate a beneficiary — the person who receives your pension pot if you die — through the pension provider\'s online portal. This is separate from your Acme HR records. Keep it updated, especially after major life events like marriage.',
+    'default': 'Would you like to know more about contribution rates, how to check your balance, or how to update your beneficiary?'
+  },
+  'stolen|lost laptop|missing device|laptop stolen|device gone|laptop lost|someone stole|my laptop|computer stolen|phone stolen|device stolen|lost my laptop|laptop missing': {
+    'called it|already called|step 1|called already': 'Good — that\'s the most important step done. Next: report to the police and get the crime reference number. Then email it@acme.com and your manager with that reference. HR and Legal will handle any ICO notification within 72 hours.',
+    'police|report to police|crime reference': 'Yes — report to the police as soon as possible and ask for the crime reference number. You\'ll need to email that to it@acme.com and your manager. The police reference is also needed for any insurance claim.',
+    'data|my data|is my data safe|what about my data': 'IT\'s remote wipe — triggered the moment you called them — removes all data from the device before anyone can access it. That\'s why calling IT first and fast is so important. If you\'re worried about specific files, mention that to IT and they can advise.',
+    'replacement|new laptop|new device|get a new one|replacement laptop': 'Once the incident is logged, request a replacement through the IT portal under Hardware Requests. Explain it\'s a replacement for a stolen device and include the incident reference. Turnaround is typically five to ten working days — IT can fast-track it if you have no working machine.',
+    'hr|legal|ico|gdpr|data breach': 'HR and Legal handle the statutory reporting side — specifically, they\'ll assess within 72 hours whether an ICO notification is required under GDPR. You don\'t need to do anything for that step; it\'s their responsibility once you\'ve reported to IT.',
+    'default': 'The most urgent step is always calling IT on ext. 2200 — they\'re available 24/7. After that: police report → crime reference to IT and your manager → HR/Legal handle ICO notification → request a replacement device. Which step are you on?'
+  },
+  'password|reset|forgotten password|locked out|cannot log in|forgot password|password expired|reset my password|change password|locked account|account locked': {
+    'requirements|rules|characters|how long|strong': 'Acme passwords need to be at least 12 characters long and include a mix of uppercase and lowercase letters, at least one number, and at least one symbol. You can\'t reuse any of your last 10 passwords.',
+    'expire|how long|90 days|change|renew': 'Passwords expire automatically every 90 days. You\'ll get reminder emails at 7 days and 3 days before expiry so you can change it before getting locked out.',
+    'still not working|it helpdesk|call|ext 2200|contact it': 'If the self-service portal isn\'t working for you, call the IT helpdesk directly on ext. 2200, available Monday to Friday 8 am to 6 pm. They\'ll verify your identity and reset it manually.',
+    'default': 'Is it the reset process that\'s not working, or a question about the password rules themselves?'
+  },
+  'two factor|two-factor|2fa|authenticator|mfa|multi factor authentication|set up two factor|set up 2fa': {
+    'lost phone|new phone|changed phone|lost device': 'If you\'ve lost your phone or got a new one, contact IT immediately on ext. 2200. They\'ll remove the existing 2FA link from your account so no one else can use it, and then walk you through setting it up on your new device.',
+    'not working|code wrong|expired|invalid code': '2FA codes expire every 30 seconds, so if the code is rejected it may have just timed out — try the next one. If codes consistently aren\'t working, check your phone\'s clock is set to automatic/network time, as a drift of even a few seconds can cause failures.',
+    'how to set up|steps|install|download': 'Go to the IT portal, click Security, then Set up 2FA. Download the Microsoft Authenticator app from the App Store or Google Play. Open the app, tap the + button to add an account, then scan the QR code shown on the IT portal screen. Enter the 6-digit code to confirm and you\'re done.',
+    'default': 'Is it the initial setup you need help with, a lost or new phone, or are the codes not working as expected?'
+  },
+  'coming back from sick leave|returning to work|return to work|back to work after illness|back after being sick': {
+    'doctor|fit note|note|gp|certificate': 'If you were off five or more consecutive working days, bring your doctor\'s fit note on your first day back. For absences under five days no note is needed.',
+    'return conversation|back to work chat|meeting|manager chat': 'Your manager will have a brief return-to-work conversation on or shortly after your first day back. It\'s informal and supportive — the aim is to check you\'re ok and see if any adjustments would help, not to question your absence.',
+    'occupational health|occ health|long term|weeks|months': 'For absences of two weeks or more, the occupational health advisor gets involved. They\'re there to recommend reasonable adjustments and support your return — not to scrutinise you. HR coordinates this.',
+    'adjustments|reasonable adjustments|support|phased return': 'If you need a phased return or other adjustments — for example reduced hours or different tasks temporarily — raise this in the return-to-work conversation. Your manager and HR will work with you and the occupational health advisor to agree a plan.',
+    'default': 'Is it the doctor\'s note requirement, the return conversation, or longer-term absence support you\'d like to know more about?'
+  },
+  'how to raise a complaint|complaint process|steps for complaint|grievance process|what happens when i complain|file a grievance': {
+    'how long|timeline|how much time|process duration|10 days': 'Once submitted, you\'ll receive written acknowledgement within 3 working days. The investigation itself takes a maximum of 10 working days. After that you receive the written outcome.',
+    'appeal|disagree|not happy|outcome|decision': 'If you\'re not satisfied with the outcome, you have the right to appeal. HR will explain the appeals process when they communicate the decision. The appeal is reviewed by someone who wasn\'t involved in the original investigation.',
+    'retaliation|consequences|punished|fired|negative': 'Retaliation against anyone who raises a complaint is strictly prohibited and is itself treated as a serious misconduct issue. Report any retaliation to HR or the Confidential Support Officer immediately.',
+    'anonymous|name|confidential|secret': 'You can raise concerns anonymously through the external Confidential Support Officer line — 0800-2222. However, fully anonymous formal complaints can limit what the investigation can do. The Support Officer can advise on the best approach for your situation.',
+    'default': 'Is it the process itself, the timeline, or what happens after you submit that you\'d like to know more about?'
+  },
+  'i just started|i am new|just joined|new employee|brand new|first week|started this week|just started working': {
+    'forms|onboarding forms|documents|paperwork': 'The onboarding forms are in the HR portal under My Onboarding. Complete them before your first day if possible — this keeps your first payslip on time. You\'ll need to submit your photo ID, tax starter checklist, bank details, and emergency contact.',
+    'system|login|access|password|account': 'Your Acme account credentials will arrive from IT on day one. First things to do: change your temporary password, set up 2FA (IT portal → Security → Set up 2FA), and download the VPN client (IT portal → Downloads). Call IT on ext. 2200 if anything isn\'t working.',
+    'policies|handbook|rules|code of conduct': 'The employee handbook covers everything you need to know about working at Acme. Find it on the intranet under HR Documents → Employee Handbook. You\'ll also have signed the Code of Conduct during onboarding — that\'s on the intranet under HR Documents → Policy.',
+    'leave|holiday|time off|days off': 'As a full-time employee you get 25 days of annual leave per year. Your balance is in the HR portal under My Leave. To book time off: My Leave → select dates → submit. Your manager has five working days to respond.',
+    'default': 'Is there a specific first-week task I can walk you through — forms, system access, or finding a policy?'
+  },
+  'discount|pricing|price|deal|negotiation|how much can i discount': {
+    'who approves|approval|manager|director': 'Up to 10% is your own call. Between 10-20% your Sales Manager needs to approve it in writing — a quick email with the deal context is enough. Above 20% it goes to the Commercial Director and Finance, who\'ll want a business case with ROI data.',
+    'salesforce|log|record|document': 'Every discount and its approval must be recorded in Salesforce on the relevant opportunity. This keeps the audit trail clean and ensures the approval is visible to management and Finance.',
+    'workaround|add-on|free|creative|extend payment': 'Creative workarounds like free add-ons, extended payment terms, or extra services without sign-off are treated the same as unauthorised discounts. The approval process exists for all forms of commercial concession, not just headline price reductions.',
+    'default': 'Are you trying to understand the tiers, the approval process, or how to document it in Salesforce?'
+  },
+  'formal complaint|grievance|raise complaint|file complaint|submit complaint': {
+    'how long|timeline|how much time|process duration|10 days': 'Once submitted, you\'ll receive written acknowledgement within 3 working days. The investigation itself — which involves hearing both sides — takes a maximum of 10 working days. After that you receive the written outcome.',
+    'appeal|disagree|not happy|outcome|decision': 'If you\'re not satisfied with the outcome, you have the right to appeal. HR will explain the appeals process when they communicate the decision. An appeal is reviewed by someone who wasn\'t involved in the original investigation.',
+    'retaliation|consequences|punished|fired|negative': 'Retaliation against anyone who raises a complaint is strictly prohibited and is itself treated as a serious misconduct issue. If you experience or witness any retaliation, report it to HR or the Confidential Support Officer immediately.',
+    'anonymous|name|confidential|secret': 'You can raise concerns anonymously through the external Confidential Support Officer line — 0800-2222. However, a fully anonymous formal complaint makes investigation harder since the respondent can\'t be formally interviewed without knowing what\'s alleged. The Support Officer can advise on the best route for your situation.',
+    'default': 'Is it the process itself, the timeline, or what happens after you submit that you\'d like to know more about?'
+  }
+};
+
+/* ------------------------------------------------------------------
+   PENDING QUESTION TRACKING
+   After Vera asks a follow-up question, we store it so "yes"/"no"
+   can be matched to the right expansion angle.
+   ------------------------------------------------------------------ */
+var pendingQuestion = null; /* {text, angle, topic} */
+
+/* Map Vera's follow-up questions to expansion angles */
+var questionAngleMap = [
+  { re: /return|come back|ready to return|back to work/i,             angle: 'next' },
+  { re: /request|submit|apply|book|how (do i|to)/i,                   angle: 'how' },
+  { re: /portal|where|find|access|locate/i,                           angle: 'where' },
+  { re: /long|timeline|deadline|how soon|when/i,                      angle: 'timeline' },
+  { re: /cost|money|allowance|much|paid|reimburse/i,                  angle: 'cost' },
+  { re: /contact|email|phone|who (do i|to)/i,                         angle: 'contact' },
+  { re: /rights|protected|what (happens|are my)/i,                    angle: 'rights' },
+  { re: /appeal|disagree|outcome|not happy/i,                         angle: 'exception' },
+  { re: /part.time|pro.rata|hours/i,                                   angle: 'parttime' },
+  { re: /balance|check|how many (left|days)/i,                        angle: 'where' },
+  { re: /more|detail|expand|explain|go into/i,                        angle: 'more' },
+  { re: /set up|setup|install|configure/i,                            angle: 'how' },
+  { re: /pay|salary|sick pay|paid when sick/i,                        angle: 'cost' },
+  { re: /doctor|note|gp|fit note/i,                                   angle: 'note' },
+  { re: /exception|special|different|individual/i,                    angle: 'exception' },
+  { re: /police|crime reference|report theft/i,                       angle: 'police' },
+  { re: /data|safe|wiped|my files/i,                                  angle: 'data' },
+  { re: /replacement|new (laptop|device|computer)/i,                  angle: 'replacement' },
+  { re: /anonymous|anonymously|no name|secret/i,                      angle: 'anonymous' },
+  { re: /retaliation|consequences|punish|fired/i,                     angle: 'retaliation' },
+  { re: /phased|adjustment|reduced hours|support plan/i,              angle: 'adjustments' },
+  { re: /forms|paperwork|documents|onboarding forms/i,                angle: 'forms' },
+  { re: /system|login|account|password|credentials/i,                 angle: 'system' }
+];
+
+function extractPendingQuestion(answerText, topic){
+  /* Pull the trailing question from Vera's answer and map it to an angle */
+  var sentences = answerText.split(/(?<=[.!?])\s+/);
+  var last = sentences[sentences.length - 1] || '';
+  if(last.indexOf('?') === -1) return null;
+
+  for(var i = 0; i < questionAngleMap.length; i++){
+    if(questionAngleMap[i].re.test(last)){
+      return { text: last, angle: questionAngleMap[i].angle, topic: topic };
+    }
+  }
+  /* Generic — the question was about "more" */
+  return { text: last, angle: 'more', topic: topic };
+}
+
+/* Follow-up patterns */
+var followUpPatterns = [
+  { re: /^(yes|yeah|yep|sure|please|go ahead|ok|okay|absolutely|definitely|that would be (great|helpful|good)|i (would|d) (like|love)|tell me more|yes please)[\s!.?]*$/i,
+    respond: function(last){ return answerPendingYes(last); } },
+  { re: /^(no|nope|not really|that.s (ok|fine|alright)|never ?mind|don.t worry|i.m (ok|fine|alright|good)|got it|thanks?|thank you|cheers|perfect|great|helpful|makes sense|understood|clear)[\s!.?]*$/i,
+    respond: function(last){ return closeOut(last); } },
+  { re: /how (do i|can i|would i|do you|does (that|it)|do (i|you))|what.s the (process|procedure|way|best way|next step)|how does (that|this|it) work/i,
+    respond: function(last){ return expandOnLast(last, 'how'); } },
+  { re: /where (do i|can i|is (that|it|this)|do (i|you))|where.s (that|it)|how do i (find|access|get to|open|get)/i,
+    respond: function(last){ return expandOnLast(last, 'where'); } },
+  { re: /can (you )?(tell me )?more|more (detail|info|information)|expand|elaborate|explain (more|further|that)|what does that mean/i,
+    respond: function(last){ return expandOnLast(last, 'more'); } },
+  { re: /what (about|if|happens|then)|and (then|after|what)|after that|next step|what.s next/i,
+    respond: function(last){ return expandOnLast(last, 'next'); } },
+  { re: /how (long|much time|many days|many weeks)|timeline|deadline|when|how soon/i,
+    respond: function(last){ return expandOnLast(last, 'timeline'); } },
+  { re: /how much|cost|price|fee|paid|money|\u00a3|salary|allowance|rate/i,
+    respond: function(last){ return expandOnLast(last, 'cost'); } },
+  { re: /who (do i|should i|can i)|who.s (responsible|in charge|the contact)|contact|email|phone|number|ext/i,
+    respond: function(last){ return expandOnLast(last, 'contact'); } },
+  { re: /what if (my |i |the |there )?(manager|refused|declines|says no|disagrees|doesn.t|won.t|can.t)/i,
+    respond: function(last){ return expandOnLast(last, 'exception'); } },
+  { re: /^(and|also|also,|what about|but|ok but|okay but|and what about)/i,
+    respond: function(last){ return expandOnLast(last, 'more'); } }
+];
+
+function isFollowUp(q){
+  if(!genHistory.length) return false;
+  var words = q.trim().split(/\s+/).length;
+  if(words <= 4) return true;
+  return followUpPatterns.some(function(p){ return p.re.test(q); });
+}
+
+function handleFollowUp(q){
+  var last = genHistory[genHistory.length-1];
+  if(!last) return null;
+  for(var i=0; i<followUpPatterns.length; i++){
+    if(followUpPatterns[i].re.test(q)){
+      return followUpPatterns[i].respond(last);
+    }
+  }
+  return expandOnLast(last, 'more');
+}
+
+function answerPendingYes(last){
+  /* User said "yes" — answer the question Vera just asked */
+  if(pendingQuestion && pendingQuestion.topic){
+    var savedTopic = last.topic;
+    /* Temporarily point at the pending question's topic */
+    last.topic = pendingQuestion.topic;
+    var angle   = pendingQuestion.angle;
+    pendingQuestion = null;
+    return expandOnLast(last, angle);
+  }
+  /* No pending question stored — generic expansion */
+  return expandOnLast(last, 'more');
+}
+
+
+function expandOnLast(last, angle){
+  if(!last || !last.topic) return null;
+
+  var detail = veraDetail[last.topic];
+  if(!detail) return genericExpand(last, angle);
+
+  var ql = (last.lastQ||'').toLowerCase() + ' ' + angle;
+
+  /* Try to find a matching detail key */
+  for(var key in detail){
+    if(key==='default') continue;
+    var parts = key.split('|');
+    for(var i=0;i<parts.length;i++){
+      try {
+        var rx = new RegExp(parts[i].replace(/\./g,'\\w*'), 'i');
+        if(rx.test(ql) || rx.test(angle)){
+          return withHook(detail[key], last);
+        }
+      } catch(e){}
+    }
+  }
+
+  /* Angle-based fallbacks */
+  var angleMap = {
+    'how':          detail['how|request|apply|submit|book'] || detail['how to set up|steps|install|download'] || detail['default'],
+    'where':        detail['portal|where|how|steps'] || detail['view|balance|check|statement|how much have i got'] || detail['default'],
+    'timeline':     detail['how long|deadline|30 days|time|when'] || detail['how long|timeline|how much time|process duration|10 days'] || detail['expire|how long|90 days|change|renew'] || detail['default'],
+    'cost':         detail['allowance|money|paid|reimburse|chair|monitor|equipment'] || detail['how much|amount|rate|percentage|contribution'] || detail['pay|sick pay|paid|salary when sick'] || detail['default'],
+    'contact':      detail['still not working|it helpdesk|call|ext 2200|contact it'] || detail['default'],
+    'exception':    detail['what if|manager|refused|declines'] || detail['appeal|disagree|not happy|outcome|decision'] || detail['default'],
+    'next':         detail['return|come back|fit note|back to work'] || detail['return conversation|back to work chat|meeting|manager chat'] || detail['default'],
+    'note':         detail['note|doctor|fit note|gp'] || detail['doctor|fit note|note|gp|certificate'] || detail['return|come back|fit note|back to work'] || detail['default'],
+    'parttime':     detail['part.time|pro.rata|hours|contract'] || detail['default'],
+    'rights':       detail['my rights|rights|protected'] || detail['appeal|disagree|not happy|outcome|decision'] || detail['default'],
+    'police':       detail['police|report to police|crime reference'] || detail['default'],
+    'data':         detail['data|my data|is my data safe|what about my data'] || detail['default'],
+    'replacement':  detail['replacement|new laptop|new device|get a new one|replacement laptop'] || detail['default'],
+    'anonymous':    detail['anonymous|name|confidential|secret'] || detail['default'],
+    'retaliation':  detail['retaliation|consequences|punished|fired|negative'] || detail['default'],
+    'adjustments':  detail['adjustments|reasonable adjustments|support|phased return'] || detail['default'],
+    'forms':        detail['forms|onboarding forms|documents|paperwork'] || detail['default'],
+    'system':       detail['system|login|access|password|account'] || detail['default'],
+    'more':         detail['default']
+  };
+
+  var response = angleMap[angle] || detail['default'];
+  if(!response) return genericExpand(last, angle);
+  return withHook(response, last);
+}
+
+function withHook(text, last){
+  var hooks = [
+    'Good question — ',
+    'Sure — ',
+    'Happy to go into that — ',
+    'Of course — ',
+    'Yes, to follow up on that — '
+  ];
+  var hook = hooks[genHistory.length % hooks.length];
+  return hook + text;
+}
+
+function genericExpand(last, angle){
+  var responses = [
+    'I want to make sure I give you the right information on this. Could you tell me a bit more about what specifically you\'d like to know? I\'m happy to go deeper on any aspect of what we discussed.',
+    'Good follow-up. To give you the most accurate answer, could you say a little more about what you\'re trying to figure out? Is it the process, the timing, who to contact, or something else?',
+    'I\'d love to help with that — could you give me a bit more context? That way I can point you to exactly the right information rather than covering things you already know.',
+    'Sure thing — what aspect would you most like to know more about? I can go into the practical steps, the policy reasoning, exceptions, or who to contact, depending on what\'s most useful.'
+  ];
+  return responses[genHistory.length % responses.length];
+}
+
+function closeOut(last){
+  pendingQuestion = null;
+  var responses = [
+    'Great — don\'t hesitate to come back if anything else comes up. I\'m here whenever you need me.',
+    'Glad I could help. If anything else comes to mind, just ask.',
+    'No problem at all. Feel free to ask about anything else — whether it\'s HR, IT, or anything in between.',
+    'Of course. If you have more questions later, I\'m always here.'
+  ];
+  return responses[genHistory.length % responses.length];
+}
+
+/* ------------------------------------------------------------------
+   MATCHING ENGINE — follow-up detection runs first, then keywords
+   ------------------------------------------------------------------ */
+/* ==================================================================
+   STYLE MIRROR ENGINE
+   Analyses the user's message and adapts Vera's reply to match their
+   communication style — formality, length, emoji, punctuation energy.
+   ================================================================== */
+
+var userStyleProfile = {
+  formality:    'neutral',
+  emojiUse:     false,
+  shortMsg:     false,
+  exclamatory:  false,
+  dutch:        false,
+  allLower:     false,
+  messageCount: 0
+};
+
+function analyseStyle(q){
+  var words = q.trim().split(/\s+/);
+  var ql    = q.toLowerCase();
+
+  var casualMarkers  = /\b(hey|hi|hiya|yo|sup|lol|haha|btw|tbh|gonna|wanna|kinda|sorta|dunno|ngl|omg|wtf|fyi|asap|thx|thanks|cheers|cool|great|awesome|ok|okay|nope|yep|yup|pls|plz)\b/i;
+  var formalMarkers  = /\b(dear|sincerely|regards|kindly|pursuant|hereby|I would like|could you please|I am writing|please advise|as per)\b/i;
+  var dutchMarkers   = /\b(ik|je|wat|hoe|kan|mag|moet|mijn|dit|dat|voor|meer|weet|niet|even|ook|nog|maar|want|zijn|heeft|graag|bedankt|dank|alvast)\b/i;
+
+  if(formalMarkers.test(q))       userStyleProfile.formality = 'formal';
+  else if(casualMarkers.test(ql)) userStyleProfile.formality = 'casual';
+  else                            userStyleProfile.formality = 'neutral';
+
+  userStyleProfile.dutch       = dutchMarkers.test(ql);
+  userStyleProfile.emojiUse    = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(q);
+  userStyleProfile.shortMsg    = words.length <= 6;
+  userStyleProfile.exclamatory = /!/.test(q) || /\b(great|awesome|perfect|amazing|brilliant)\b/i.test(q);
+  userStyleProfile.allLower    = q === q.toLowerCase() && /[a-z]/.test(q);
+  userStyleProfile.messageCount++;
+}
+
+function mirrorStyle(text, q){
+  analyseStyle(q);
+  var p = userStyleProfile;
+  var result = text;
+
+  if(p.formality === 'casual'){
+    result = result
+      .replace(/\bplease be aware that\b/gi, 'just so you know')
+      .replace(/\bplease note that\b/gi, 'quick heads-up:')
+      .replace(/\bIt is important to\b/gi, 'Make sure you')
+      .replace(/\bIn order to\b/gi, 'To')
+      .replace(/\bprior to\b/gi, 'before')
+      .replace(/\bsubsequently\b/gi, 'after that')
+      .replace(/\bcommence\b/gi, 'start')
+      .replace(/\butilise\b/gi, 'use')
+      .replace(/\bpurchase\b/gi, 'buy')
+      .replace(/\bremuneration\b/gi, 'pay')
+      .replace(/\bI would encourage you to\b/gi, "I'd really recommend")
+      .replace(/\bYou are entitled to\b/gi, 'You get')
+      .replace(/\bYou may\b/g, 'You can')
+      .replace(/\bshould you require\b/gi, 'if you need')
+      .replace(/\bdo not hesitate to\b/gi, 'feel free to');
+  }
+
+  if(p.formality === 'formal'){
+    result = result
+      .replace(/ :(\)|\()/g, '.')
+      .replace(/Oh, /g, '')
+      .replace(/\bcan't\b/g, 'cannot')
+      .replace(/\bwon't\b/g, 'will not')
+      .replace(/\bdon't\b/g, 'do not')
+      .replace(/\bI'd\b/g, 'I would')
+      .replace(/\bI'm\b/g, 'I am')
+      .replace(/\bYou're\b/g, 'You are')
+      .replace(/\bthey're\b/gi, 'they are')
+      .replace(/\bthat's\b/gi, 'that is')
+      .replace(/\bit's\b/gi, 'it is')
+      .replace(/\bGreat that\b/gi, 'It is noted that')
+      .replace(/\bReally glad\b/gi, 'I am pleased to note that')
+      .replace(/ !\s/g, '. ');
+  }
+
+  if(p.shortMsg && p.messageCount <= 3){
+    result = result
+      .replace(/^(Sure thing!|Of course!|Great question!|Good thinking!|Happy to help(?: with that)?[!.]?)\s*/i, '')
+      .replace(/^(Oh, good thinking to check|Oh, how exciting)\s*[—-]?\s*/i, '');
+  }
+
+  if(!p.emojiUse){
+    result = result.replace(/ :(\)|\(|D)/g, '').replace(/ ;\)/g, '');
+  }
+
+  if(p.dutch && p.messageCount === 1){
+    result = 'No problem, I can help with that in English! ' + result;
+  }
+
+  return result;
+}
+
+function matchVera(q){
+  /* 1. Check if this is a follow-up to the previous turn */
+  if(isFollowUp(q)){
+    var followUpResponse = handleFollowUp(q);
+    if(followUpResponse) return followUpResponse;
+  }
+
+  /* 2. Standard keyword matching */
+  var ql = q.toLowerCase();
+  var matched = null;
+  for(var keys in veraDB){
+    if(keys==='_fallback') continue;
+    if(keys.split('|').some(function(k){ return ql.indexOf(k)>-1; })){
+      matched = keys; break;
+    }
+  }
+
+  /* Store the matched topic so follow-ups can reference it */
+  if(genHistory.length > 0){
+    genHistory[genHistory.length-1].topic = matched;
+    genHistory[genHistory.length-1].lastQ  = q;
+  }
+
+  var fns = matched ? veraDB[matched] : veraDB['_fallback'];
+  var variant = genHistory.length % fns.length;
+  return fns[variant](q, genHistory);
+}
+
+/* ------------------------------------------------------------------
+   RESPONSE COMPOSERS
+   adapt()        — normal response with optional follow-up
+   adaptSensitive — empathetic response, no follow-up question
+   fallback()     — graceful out-of-scope handling
+   ------------------------------------------------------------------ */
+function adapt(q, v1, v2, history, followUp1, followUp2){
+  /* Picks v1 or v2 based on turn parity, prepends contextual hook if
+     there's prior conversation, appends a follow-up question.        */
+  var base = (history.length % 2 === 0) ? v1 : v2;
+  var hook = contextHook(q, history);
+  var fup  = followUp1 && (history.length % 2 === 0) ? ' ' + followUp1
+           : followUp2 ? ' ' + followUp2 : '';
+  return (hook ? hook + ' ' : '') + base + fup;
+}
+
+function adaptSensitive(q, v1, v2, history){
+  var base = (history.length % 2 === 0) ? v1 : v2;
+  /* No follow-up question on sensitive topics — just support */
+  return base;
+}
+
+function fallback(q, history){
+  var phrases = [
+    'That\'s a good question and I want to make sure you get the right answer. This particular topic isn\'t something I can cover directly, but HR at hr@acme.com or ext. 2201 will be able to help — they usually respond within one working day.',
+    'I don\'t have that one in my knowledge base, but I don\'t want to guess and give you the wrong information. Your best bet is to contact HR directly at hr@acme.com — they\'re very responsive.',
+    'Hmm, that\'s outside what I can answer reliably right now. I\'d rather point you to someone who can give you a definitive answer than give you something inaccurate. HR at hr@acme.com or toestel 2201 is the quickest route.',
+    'That\'s a bit beyond what I\'m set up to cover, but it\'s a reasonable question. HR will know — reach them at hr@acme.com or call ext. 2201.'
+  ];
+  return phrases[genHistory.length % phrases.length];
+}
+
+function contextHook(q, history){
+  /* If there\'s prior conversation, occasionally reference it to
+     create the feeling of conversational continuity.               */
+  if(!history.length) return '';
+  var last = history[history.length-1];
+  if(!last) return '';
+  var hooks = [
+    'Following on from what we were just talking about —',
+    'Good follow-up.',
+    'Sure thing.',
+    'Happy to help with that too.',
+    'Of course —',
+    'Good question —'
+  ];
+  /* Only add a hook ~40% of the time to avoid feeling mechanical */
+  if(Math.random() < 0.4) return hooks[history.length % hooks.length];
+  return '';
+}
+
+/* ------------------------------------------------------------------
+   TYPING DELAY — varies by response length to feel more authentic
+   ------------------------------------------------------------------ */
+function veraDelay(text){
+  var words = text.split(' ').length;
+  var base  = 800;
+  var perWord = 18; /* ms per word — simulates reading + typing */
+  return Math.min(base + words * perWord, 3500);
+}
+
+/* ------------------------------------------------------------------
+   STREAMING SIMULATOR — reveals text word-by-word like a real LLM
+   ------------------------------------------------------------------ */
+function streamText(text, el, msgClass, onDone){
+  el.className = 'msg ' + msgClass;
+  el.innerHTML = '';
+  var words = text.split(' ');
+  var i = 0;
+  /* Chunk size varies slightly to avoid metronomic feel */
+  function nextChunk(){
+    if(i >= words.length){ if(onDone) onDone(); return; }
+    var chunkSize = 1 + Math.floor(Math.random() * 3); /* 1-3 words */
+    var chunk = words.slice(i, i + chunkSize).join(' ');
+    el.innerHTML += (i === 0 ? '' : ' ') + chunk;
+    i += chunkSize;
+    el.closest('.chat-msgs').scrollTop = el.closest('.chat-msgs').scrollHeight;
+    var delay = 30 + Math.random() * 40; /* 30-70ms between chunks */
+    setTimeout(nextChunk, delay);
+  }
+  nextChunk();
+}
+
+/* ------------------------------------------------------------------
+   CHAT ENGINE
+   ------------------------------------------------------------------ */
+function callVera(q, afterStream){
+  var urgent = isUrgent(q);
+  showTyping('gen-msgs', true);
+  var answer = mirrorStyle(matchVera(q), q);
+  /* Push to history so context is available for follow-ups */
+  genHistory.push({q: q, a: answer, topic: null, lastQ: q});
+  var delay = veraDelay(answer);
+  setTimeout(function(){
+    removeTyping('gen-msgs');
+    var c = document.getElementById('gen-msgs');
+    var w = document.createElement('div');
+    var cls = urgent ? 'msg-alert' : 'msg-gen';
+    w.innerHTML = '<div class="label-row"><div class="gen-av" style="width:20px;height:20px;font-size:10px;">❖</div><span class="label-nm">HR Assistant</span></div>'
+                + '<div class="msg ' + cls + '"></div>'
+                + '';
+    c.appendChild(w);
+    var msgEl = w.querySelector('.msg');
+    streamText(answer, msgEl, cls, function(){
+      /* Extract pending question for follow-up tracking */
+      extractPendingQuestion(answer, genHistory[genHistory.length-1] ? genHistory[genHistory.length-1].topic : null);
+      c.scrollTop = c.scrollHeight;
+      if(afterStream) afterStream(c);
+    });
+  }, delay);
+}
+
+function genQ(q, afterStream){
+  addMsg('gen-msgs', q, true, true, false);
+  callVera(q, afterStream);
+}
+
+function genQWithFollowup(q, fq, fl){
+  genQ(q, function(c){
+    var wrap = document.createElement('div');
+    wrap.className = 'sug-wrap';
+    wrap.style.marginTop = '4px';
+    var btn = document.createElement('button');
+    btn.className = 'sug-btn';
+    btn.style.borderColor = '#0F6E56';
+    btn.style.color = '#0F6E56';
+    btn.textContent = fl;
+    btn.addEventListener('click', function(){ genQ(fq); });
+    var lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:11px;color:#5f5e5a;margin-bottom:4px;';
+    lbl.textContent = '💬 Follow-up';
+    var row = document.createElement('div');
+    row.className = 'sug-row';
+    row.appendChild(btn);
+    wrap.appendChild(lbl);
+    wrap.appendChild(row);
+    c.appendChild(wrap);
+    c.scrollTop = c.scrollHeight;
+  });
+}
+
+
+function genSend(){
+  var inp=document.getElementById('gen-inp');
+  var q=inp.value.trim();if(!q)return;
+  if(voiceMode['gen'] && voiceMode['gen'].active && voiceMode['gen'].type){
+    inp.value='';
+    handleVoiceSubmit('gen', q);
+    return;
+  }
+  inp.value='';genQ(q);
+}
+</script>
+</body>
+</html>
